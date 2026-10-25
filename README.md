@@ -1,11 +1,12 @@
 # Claude video skills
 
-Six Claude Code skills that turn a source (paper, documentation, or a topic) into a narrated Chinese explainer video, end to end: content design → slides/scenes → edge-tts narration → MP4 with subtitles. They render with headless Chrome and ffmpeg (the two K-Plex skills write Obsidian notes instead); no After Effects, no Remotion.
+Seven Claude Code skills that turn a source (paper, documentation, or a topic) into a narrated Chinese explainer video, end to end: content design → slides/scenes → edge-tts narration → MP4 with subtitles. They render with headless Chrome and ffmpeg (the two K-Plex skills write Obsidian notes instead); no After Effects, no Remotion.
 
 | Skill | Style | Best for |
 |---|---|---|
 | [`slides-video/`](slides-video/) | Static styled slides (1920×1080 HTML → PNG), one slide spoken per beat | 组会汇报（论文→lab-meeting video）、带示例和类比的文档教程、系列课程一讲 |
 | [`motion-explainer/`](motion-explainer/) | Code-drawn motion graphics; every visual element enters on the narration beat that names it | Animated explainers in a dark HUD style ("辞月赴尘"-like), concept demos, pipelines |
+| [`podcast-video/`](podcast-video/) | Two-host Chinese dialogue podcast (小林 × 老周, everyday-life analogies) via edge-tts, then static slides switched on the exact line timings → MP4 (no subtitles) + PPTX with the dialogue as speaker notes | Turning a doc/tutorial chapter or a whole series into podcasts + videos; one subagent per chapter |
 | [`research-to-video/`](research-to-video/) | Four-stage pipeline (research → HTML PPT → narration → MP4) with a user checkpoint after each stage | Topic-driven talk videos; depends on the `ppt-generator` and `speech-to-audio` skills |
 | [`paper-ste-visual/`](paper-ste-visual/) | One paper → bilingual (ASD-STE100 Simplified English + Chinese) interactive HTML explainer with animated diagrams and concept tables | Paper explainers in plain, controlled English |
 | [`kplex-paper-deep-read/`](kplex-paper-deep-read/) | One PDF → a K-Plex deep-reading note with every figure/table/formula, plus one paper card per cited reference (Semantic Scholar/arXiv/OpenAlex lookup), linked via `References` | Building a citation graph in Obsidian/K-Plex |

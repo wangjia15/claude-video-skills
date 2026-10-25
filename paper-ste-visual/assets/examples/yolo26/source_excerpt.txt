@@ -1,0 +1,60 @@
+SOURCE: Sapkota, Cheppally, Sharda, Karkee. "YOLO26: Key Architectural Enhancements and Performance Benchmarking for Real-Time Object Detection". arXiv:2509.25164v5, March 17, 2026.
+NOTE: Verbatim excerpts copied from the PDF text of version 5 (tables and the sentences that carry numbers), plus one sentence from version 1 (arxiv.org/html/2509.25164v1).
+
+[Abstract] YOLO26, released in September 2025, stands as the newest and most advanced member of the YOLO family ... We present performance benchmarks of YOLO26 on edge devices such as NVIDIA Jetson Nano and Orin, comparing its results with YOLOv8, YOLOv11, YOLOv12, YOLOv13, and transformer-based detectors.
+
+[Section 1] YOLO26 is engineered around three guiding principles simplicity, efficiency, and innovation ... five supported tasks: object detection, instance segmentation, pose/keypoints detection, oriented detection, and classification.
+
+[Section 2.2] Comparative benchmarks demonstrate that YOLO26 achieves faster inference speeds than YOLOv11 and YOLOv12, with CPU inference times reduced by up to 43% for the nano model.
+[Section 2.2] While other advanced detectors such as RT-DETR and Sparse R-CNN have experimented with NMS-free inference, YOLO26 represents the first YOLO release to adopt this paradigm while maintaining YOLO's hallmark balance between speed and accuracy.
+
+[Table 1, row YOLOv10 (2024)] Achieved end-to-end NMS-free detection via a consistent dual-assignment training strategy (removing post-processing).
+
+[Section 3.1] In particular, YOLO26-m and YOLO26-l achieve strong detection accuracy above 53% and 55% mAP, respectively, at substantially lower latency than transformer-based alternatives
+[Version 1, Section 3.1] For instance, YOLO26-m and YOLO26-l achieve competitive mAP scores above 51% and 53%, respectively, but at a substantially reduced latency
+
+[Table 2] Ultralytics YOLO26 performance metrics (640 px). Detection (top) and instance segmentation (bottom) results report COCO validation accuracy, end-to-end (e2e) scores where applicable, and speed on CPU (ONNX) and NVIDIA T4 (TensorRT10 FP16), along with model size (params) and compute (FLOPs).
+Detection
+Model    Size(px)  mAP_val 50-95  mAP_val 50-95 (e2e)  Speed CPU ONNX (ms)  Speed T4 TRT10 (ms)  Params(M)  FLOPs(B)
+YOLO26n  640       40.9           40.1                 38.9 +- 0.7          1.7 +- 0.0           2.4        5.4
+YOLO26s  640       48.6           47.8                 87.2 +- 0.9          2.5 +- 0.0           9.5        20.7
+YOLO26m  640       53.1           52.5                 220.0 +- 1.4         4.7 +- 0.1           20.4       68.2
+YOLO26l  640       55.0           54.4                 286.2 +- 2.0         6.2 +- 0.2           24.8       86.4
+YOLO26x  640       57.5           56.9                 525.8 +- 4.0         11.8 +- 0.2          55.7       193.9
+Instance Segmentation
+Model        Size(px)  mAP_box 50-95 (e2e)  mAP_mask 50-95 (e2e)  Speed CPU ONNX (ms)  Speed T4 TRT10 (ms)  Params(M)  FLOPs(B)
+YOLO26n-seg  640       39.6                 33.9                  53.3 +- 0.5          2.1 +- 0.0           2.7        9.1
+YOLO26s-seg  640       47.3                 40.0                  118.4 +- 0.9         3.3 +- 0.0           10.4       34.2
+YOLO26m-seg  640       52.5                 44.1                  328.2 +- 2.4         6.7 +- 0.1           23.6       121.5
+YOLO26l-seg  640       54.4                 45.5                  387.0 +- 3.7         8.0 +- 0.1           28.0       139.8
+YOLO26x-seg  640       56.5                 47.0                  787.0 +- 6.8         16.4 +- 0.1          62.8       313.5
+
+[Section 3.2, Table 3] Top-1 accuracy improves steadily from 71.4% to 79.9%, while maintaining strong Top-5 accuracy above 90% for all variants.
+Model        Size(px)  Acc Top-1  Acc Top-5  Speed CPU ONNX (ms)  Speed T4 TRT10 (ms)  Params(M)  FLOPs(B @224)
+YOLO26n-cls  224       71.4       90.1       5.0 +- 0.3           1.1 +- 0.0           2.8        0.5
+YOLO26s-cls  224       76.0       92.9       7.9 +- 0.2           1.3 +- 0.0           6.7        1.6
+YOLO26m-cls  224       78.1       94.2       17.2 +- 0.4          2.0 +- 0.0           11.6       4.9
+YOLO26l-cls  224       79.0       94.6       23.2 +- 0.3          2.8 +- 0.0           14.1       6.2
+YOLO26x-cls  224       79.9       95.0       41.4 +- 0.9          3.8 +- 0.0           29.6       13.6
+
+[Section 3.3, Table 4] increasing from 57.2% for the nano variant to 71.6% for the extra-large model under end-to-end evaluation.
+Model         Size(px)  mAP_pose 50-95 (e2e)  mAP_pose 50 (e2e)  Speed CPU ONNX (ms)  Speed T4 TRT10 (ms)  Params(M)  FLOPs(B)
+YOLO26n-pose  640       57.2                  83.3               40.3 +- 0.5          1.8 +- 0.0           2.9        7.5
+YOLO26s-pose  640       63.0                  86.6               85.3 +- 0.9          2.7 +- 0.0           10.4       23.9
+YOLO26m-pose  640       68.8                  89.6               218.0 +- 1.5         5.0 +- 0.1           21.5       73.1
+YOLO26l-pose  640       70.4                  90.5               275.4 +- 2.4         6.5 +- 0.1           25.9       91.3
+YOLO26x-pose  640       71.6                  91.6               565.4 +- 3.0         12.2 +- 0.2          57.6       201.7
+
+[Section 3.4, Table 5] reaching 56.7% mAP50-95 for the extra-large variant under end-to-end evaluation (DOTA v1, 1024 px).
+Model        Size(px)  mAP_test 50-95 (e2e)  mAP_test 50 (e2e)  Speed CPU ONNX (ms)  Speed T4 TRT10 (ms)  Params(M)  FLOPs(B)
+YOLO26n-obb  1024      52.4                  78.9               97.7 +- 0.9          2.8 +- 0.0           2.5        14.0
+YOLO26s-obb  1024      54.8                  80.9               218.0 +- 1.4         4.9 +- 0.1           9.8        55.1
+YOLO26m-obb  1024      55.3                  81.0               579.2 +- 3.8         10.2 +- 0.3          21.2       183.3
+YOLO26l-obb  1024      56.2                  81.6               735.6 +- 3.1         13.0 +- 0.2          25.6       230.0
+YOLO26x-obb  1024      56.7                  81.7               1485.7 +- 11.5       30.5 +- 0.9          57.6       516.5
+
+[Section 2.1] DFL was originally designed to improve bounding box regression by predicting probability distributions for box coordinates ... DFL required specialized handling during inference and model export
+[Section 2.2] NMS adds additional latency to the pipeline and requires manually tuned hyperparameters such as the Intersection-over-Union (IoU) threshold.
+[Section 2.3] ProgLoss dynamically adjusts the weighting of different loss components during training ... STAL, on the other hand, explicitly prioritizes label assignments for small objects
+[Section 2.4] MuSGD ... combines the strengths of Stochastic Gradient Descent (SGD) with the recently proposed Muon optimizer, a technique inspired by optimization strategies used in large language model (LLM) training.
+[Section 4.1] ... TensorRT for maximum GPU acceleration, ONNX for broad cross-platform compatibility, CoreML for native iOS integration, TFLite for Android and edge devices, and OpenVINO for optimized performance on Intel hardware.

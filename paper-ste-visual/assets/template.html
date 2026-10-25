@@ -1,0 +1,1078 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>__TITLE__</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+
+:root{
+  --bg:#eef2f6; --surface:#ffffff; --ink:#14213d; --muted:#53647c; --line:#cdd7e3;
+  --teal:#0b7f81; --teal-soft:#d5eeee; --amber:#d98a12; --amber-soft:#fbebcc;
+  --idle:#e6ebf1;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f1726; --surface:#172238; --ink:#e8eef7; --muted:#9db0c9; --line:#2b3a55;
+    --teal:#47c6c8; --teal-soft:#12393d; --amber:#f0b44f; --amber-soft:#3e3219; --idle:#1d2b45;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f1726; --surface:#172238; --ink:#e8eef7; --muted:#9db0c9; --line:#2b3a55;
+  --teal:#47c6c8; --teal-soft:#12393d; --amber:#f0b44f; --amber-soft:#3e3219; --idle:#1d2b45;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{
+  margin:0;min-height:100%;background:var(--bg);color:var(--ink);
+  font-family:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI","PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif;
+  font-size:1.0625rem;line-height:1.6;
+}
+main{max-width:1080px;margin:0 auto;padding:2rem 1.25rem 4rem}
+header{margin-bottom:2.5rem}
+h1{font-size:clamp(2rem,6vw,3.25rem);line-height:1.08;margin:0 0 .5rem;letter-spacing:-.02em}
+.sub{color:var(--muted);margin:0 0 1.25rem;max-width:56ch}
+.bar{display:flex;flex-wrap:wrap;gap:.5rem 1.5rem;align-items:center;padding:.75rem 1rem;background:var(--surface);border:1px solid var(--line);border-radius:10px;font-size:.95rem}
+.bar label{display:inline-flex;gap:.5rem;align-items:center;min-height:44px;cursor:pointer}
+.bar input{width:1.1rem;height:1.1rem;accent-color:var(--teal)}
+.langs{display:flex;flex-wrap:wrap;gap:.4rem}
+#stats{color:var(--muted)}
+
+section{margin-top:3rem}
+h2{font-size:1.75rem;margin:0 0 1.25rem;letter-spacing:-.01em}
+.grid{display:grid;gap:1.75rem}
+@media (min-width:900px){.grid{grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);align-items:start}}
+
+.prose p{margin:0 0 1.1rem;max-width:62ch}
+.prose .s{display:inline}
+.term{font-weight:700;background:linear-gradient(transparent 62%,var(--teal-soft) 62%)}
+.wc{
+  font-size:.68rem;line-height:1;font-weight:700;color:var(--teal);border:1px solid currentColor;
+  border-radius:999px;padding:.12em .42em;margin:0 .35em 0 .25em;vertical-align:.45em;white-space:nowrap
+}
+.wc.over{color:var(--amber)}
+body.nocount .wc{display:none}
+
+/* language modes */
+body[data-lang="en"] .zh-p{display:none}
+body[data-lang="zh"] .en-p{display:none}
+body[data-lang="zh"] .wc,
+body[data-lang="zh"] .countwrap{display:none}
+body[data-lang="both"] .prose .en-p{margin-bottom:.35rem}
+body[data-lang="both"] .prose .zh-p{
+  color:var(--muted);font-size:.98rem;padding-left:.8rem;border-left:3px solid var(--teal-soft);margin-bottom:1.5rem
+}
+
+.widget{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:1.25rem}
+.widget h3{margin:0 0 .25rem;font-size:1.15rem}
+.hint{color:var(--muted);font-size:.92rem;margin:0 0 1rem}
+.chips{display:flex;flex-wrap:wrap;gap:.4rem;margin:0 0 1rem}
+.chip{
+  font:inherit;font-size:1rem;padding:.3rem .65rem;border-radius:7px;border:1px solid var(--line);
+  background:var(--bg);color:var(--ink);line-height:1.3
+}
+.chip.new{background:var(--amber-soft);border-color:var(--amber)}
+.chip.end{background:var(--idle);color:var(--muted);font-style:italic}
+button.chip{cursor:pointer;min-height:44px}
+button.chip[aria-pressed="true"]{background:var(--teal);border-color:var(--teal);color:#fff}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) button.chip[aria-pressed="true"]{color:#08202a}}
+:root[data-theme="dark"] button.chip[aria-pressed="true"]{color:#08202a}
+
+.cands{display:grid;gap:.4rem;margin:0 0 .75rem;min-height:9.5rem;align-content:start}
+.cand{display:grid;grid-template-columns:5.5rem 1fr 3rem;gap:.6rem;align-items:center;font-size:.95rem}
+.cand .name{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.track{height:.9rem;background:var(--idle);border-radius:5px;overflow:hidden}
+.fill{height:100%;background:var(--teal);border-radius:5px;transition:width .35s ease}
+.cand.top .fill{background:var(--amber)}
+.cand .pct{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
+.cap{margin:0 0 1rem;min-height:3.2em;color:var(--ink)}
+.row{display:flex;flex-wrap:wrap;gap:.6rem}
+button.btn{
+  font:inherit;font-weight:700;min-height:44px;padding:.5rem 1.1rem;border-radius:8px;cursor:pointer;
+  border:1px solid var(--teal);background:var(--teal);color:#fff
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) button.btn{color:#08202a}}
+:root[data-theme="dark"] button.btn{color:#08202a}
+button.btn.ghost{background:transparent;color:var(--teal)}
+button.btn:disabled{opacity:.45;cursor:default}
+button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+
+.split{display:flex;flex-wrap:wrap;gap:.35rem;align-items:center;margin:0 0 1rem}
+.split .chip{font-size:.95rem}
+.split .tag{font-size:.9rem;color:var(--muted);margin-right:.5rem}
+.p1{background:var(--teal-soft)} .p2{background:var(--amber-soft)}
+
+.modes{display:flex;flex-wrap:wrap;gap:.5rem;margin:0 0 1rem}
+.router{
+  border:1px dashed var(--teal);border-radius:10px;padding:.55rem .8rem;margin:0 0 .75rem;
+  display:flex;justify-content:space-between;gap:.75rem;flex-wrap:wrap;font-size:.95rem;background:var(--teal-soft)
+}
+.experts{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;margin:0 0 .9rem}
+.ex{
+  border-radius:9px;padding:.6rem .4rem;text-align:center;background:var(--idle);color:var(--muted);
+  border:1px solid transparent;transition:background .25s,color .25s,border-color .25s;min-height:4.4rem
+}
+.ex b{display:block;font-size:1.05rem}
+.ex span{font-size:.85rem}
+.ex.on{background:var(--amber-soft);color:var(--ink);border-color:var(--amber)}
+.read{margin:0;font-size:.97rem}
+.read strong{font-variant-numeric:tabular-nums}
+
+.diagram{margin:1.5rem 0 0;max-width:460px}
+.diagram svg{width:100%;height:auto;display:block}
+.diagram figcaption{color:var(--muted);font-size:.92rem;margin-top:.5rem;max-width:56ch}
+.d-box{fill:var(--surface);stroke:var(--line);stroke-width:1.5}
+.d-box.teal{fill:var(--teal-soft);stroke:var(--teal)}
+.d-box.dash{fill:var(--teal-soft);stroke:var(--teal);stroke-dasharray:5 4}
+.d-box.idle{fill:var(--idle);stroke:none}
+.d-box.on{fill:var(--amber-soft);stroke:var(--amber);stroke-width:2}
+.d-chip{fill:var(--bg);stroke:var(--line)}
+.d-t{fill:var(--ink);font-weight:700;font-size:13px}
+.d-s{fill:var(--muted);font-size:12px}
+.d-s.sm{font-size:11px}
+.d-arrow{stroke:var(--muted);stroke-width:1.6;fill:none}
+.d-head{fill:var(--muted)}
+.d-node{fill:var(--teal)}
+.d-link{stroke:var(--teal);stroke-opacity:.35;stroke-width:1}
+.d-bar{fill:var(--teal)}
+.d-bar.top{fill:var(--amber)}
+.d-sel{stroke:var(--amber);stroke-width:2.5;fill:none}
+.d-idle{stroke:var(--muted);stroke-opacity:.5;stroke-dasharray:3 3;fill:none}
+
+.d-box.act{stroke:var(--amber);stroke-width:2.5}
+.d-chip.act{fill:var(--amber-soft);stroke:var(--amber)}
+.d-node.act{fill:var(--amber)}
+.d-arrow.act{stroke:var(--amber);stroke-width:2.5}
+.d-dot{fill:var(--amber);stroke:var(--surface);stroke-width:2}
+.anim-ctl{display:flex;gap:.6rem;align-items:center;margin-top:.6rem;flex-wrap:wrap}
+.stage{margin:.5rem 0 0;font-weight:700;min-height:3.2em;max-width:56ch}
+
+section h3.tbl-h{margin:2rem 0 .75rem;font-size:1.2rem}
+.tbl{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface)}
+.tbl table{width:100%;border-collapse:collapse;font-size:.97rem}
+.tbl th{text-align:left;background:var(--teal-soft);padding:.6rem .85rem;font-size:.9rem}
+.tbl td{padding:.7rem .85rem;border-top:1px solid var(--line);vertical-align:top}
+.tbl .tm{font-weight:700;min-width:8rem}
+.tbl .tm .t-zh{display:block;font-weight:400;font-size:.88rem;color:var(--muted)}
+.tbl .avoid{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--amber);text-decoration-thickness:2px}
+body[data-lang="en"] .t-zh,
+body[data-lang="en"] .col-zh{display:none}
+body[data-lang="zh"] .col-en{display:none}
+@media (max-width:700px){
+  .tbl{border:0;background:transparent;border-radius:0}
+  .tbl thead{display:none}
+  .tbl table,.tbl tbody,.tbl tr,.tbl td{display:block;width:100%}
+  .tbl tr{border:1px solid var(--line);border-radius:10px;padding:.55rem .85rem;margin-bottom:.7rem;background:var(--surface)}
+  .tbl td{border:0;padding:.3rem 0}
+  .tbl td[data-label]::before{content:attr(data-label);display:block;font-size:.8rem;color:var(--muted)}
+  .tbl .tm{min-width:0}
+}
+
+footer{margin-top:3.5rem;padding-top:1.5rem;border-top:1px solid var(--line);color:var(--muted);max-width:68ch}
+footer p{margin:0 0 .8rem}
+
+@media (max-width:520px){
+  .cand{grid-template-columns:4.2rem 1fr 2.8rem}
+  .experts{grid-template-columns:repeat(4,1fr);gap:.35rem}
+  .widget{padding:1rem}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* ---- paper-ste-visual additions ---- */
+.L-zh{display:none}
+body[data-lang="zh"] .L-en{display:none}
+body[data-lang="zh"] .L-zh{display:inline}
+body[data-lang="both"] .L-en{display:block}
+body[data-lang="both"] .L-zh{display:block;color:var(--muted);font-size:.92em;font-weight:400}
+h1 .L-zh,h2 .L-zh,h3 .L-zh{font-size:.58em;margin-top:.2rem}
+.srcline{color:var(--muted);font-size:.92rem;margin:0 0 1.1rem;max-width:72ch}
+.srcline a{color:var(--teal)}
+.grid.single{grid-template-columns:minmax(0,1fr)}
+.d-box.act{stroke:var(--amber);stroke-width:3;filter:drop-shadow(0 0 5px var(--amber))}
+@media (min-width:900px){.figcol{position:sticky;top:calc(1rem + env(safe-area-inset-top,0px))}}
+.figcol .diagram{margin-top:0}
+.scen{display:flex;flex-wrap:wrap;gap:.4rem;margin:0 0 .6rem}
+g.node.dim,path.d-arrow.dim,text.elabel.dim{opacity:.25}
+.chart .cand{grid-template-columns:7.2rem 1fr 4.8rem}
+.chart .src{color:var(--muted);font-size:.88rem;margin:.5rem 0 0}
+.chart .hint{margin-bottom:.6rem}
+@media (max-width:520px){.chart .cand{grid-template-columns:5.6rem 1fr 4.4rem}}
+
+/* figure cards */
+.fcard{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:1.25rem;margin:0 0 1.75rem}
+.fhead{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem .6rem;margin:0 0 1rem}
+.fhead h3{margin:0 0 0 .3rem;font-size:1.25rem}
+.fid{display:inline-block;background:var(--teal);color:#fff;border-radius:6px;padding:.05rem .5rem;font-weight:700;font-size:.88rem}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .fid{color:#08202a}}
+:root[data-theme="dark"] .fid{color:#08202a}
+body[data-lang="en"] .fid-zh{display:none}
+body[data-lang="zh"] .fid-en{display:none}
+.fgrid{display:grid;gap:1.25rem}
+@media (min-width:900px){.fgrid.side{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+.ftext{display:grid;gap:.9rem;align-content:start}
+@media (min-width:700px){.fgrid.wide .ftext{grid-template-columns:1fr 1fr}}
+.fvis h4,.ftext h4{margin:0 0 .35rem;font-size:.98rem}
+.fvis .diagram{margin-top:0}
+.ftext .prose p{margin:0 0 .5rem}
+.fblock.caution{border-left:4px solid var(--amber);padding-left:.8rem}
+.analogy{border-left:4px solid var(--teal);background:var(--teal-soft);padding:.6rem .9rem;border-radius:0 8px 8px 0}
+.analogy p{margin:0}
+body[data-lang="en"] .zh-only{display:none}
+.dtwrap{overflow-x:auto}
+.dtbl{border-collapse:collapse;width:100%;min-width:520px;font-size:.95rem}
+.dtbl th,.dtbl td{padding:.5rem .65rem;border-top:1px solid var(--line);text-align:right;font-variant-numeric:tabular-nums}
+.dtbl th:first-child,.dtbl td:first-child{text-align:left;font-weight:700}
+.dtbl thead th{background:var(--teal-soft);border-top:0;font-size:.84rem;white-space:nowrap}
+.dtbl td.best{background:var(--amber-soft);font-weight:700}
+.fvis .src{color:var(--muted);font-size:.88rem;margin:.5rem 0 0}
+.timeline{list-style:none;margin:0;padding:0 0 0 1.2rem;border-left:2px solid var(--line)}
+.timeline li{position:relative;padding:0 0 .9rem 1rem}
+.timeline li::before{content:"";position:absolute;left:-1.62rem;top:.3rem;width:.8rem;height:.8rem;border-radius:50%;background:var(--surface);border:2px solid var(--muted)}
+.timeline li.new::before{background:var(--amber);border-color:var(--amber)}
+.timeline li.ref::before{background:var(--teal);border-color:var(--teal)}
+.timeline .t-head{font-weight:700}
+.timeline .en-p,.timeline .zh-p{margin:0}
+body[data-lang="en"] .timeline .zh-p{display:none}
+body[data-lang="zh"] .timeline .en-p{display:none}
+body[data-lang="both"] .timeline .zh-p{color:var(--muted);font-size:.95rem}
+.panels{display:grid;gap:.8rem}
+@media (min-width:700px){.panels{grid-template-columns:1fr 1fr}}
+.panel{border:1px solid var(--line);border-radius:10px;padding:.8rem .9rem;background:var(--bg)}
+.panel .t-head{margin:0 0 .4rem;display:flex;flex-wrap:wrap;align-items:center;gap:.4rem}
+.plabel{font-size:.8rem;color:var(--muted);margin:.4rem 0 .1rem}
+.panel .prose p{margin:0 0 .3rem}
+.evrow{display:flex;flex-wrap:wrap;gap:.4rem .6rem;align-items:center;margin-top:.5rem}
+.ev{display:inline-block;border-radius:999px;padding:.08rem .6rem;font-size:.8rem;font-weight:700;border:1px solid currentColor}
+.ev.claim{color:var(--amber)}
+.ev.partial{color:var(--teal)}
+.ev.table{color:var(--teal);background:var(--teal-soft)}
+.evnote{font-size:.88rem;color:var(--muted)}
+.sc-zone{fill:var(--amber-soft);opacity:.75}
+.sc-zone-t{fill:var(--ink);font-weight:700}
+.sc-grid{stroke:var(--line);stroke-width:1}
+.sc-axis{stroke:var(--muted);stroke-width:1.4}
+.sc-line{fill:none;stroke:var(--teal);stroke-width:2.2;stroke-linejoin:round}
+.sc-pt{fill:var(--amber);stroke:var(--surface);stroke-width:2;cursor:pointer;transition:opacity .25s}
+.sc-pt.sel{fill:var(--teal)}
+.sc-pt.hide,.sc-lb.hide{opacity:0}
+.sc-lb{fill:var(--ink);transition:opacity .25s;pointer-events:none}
+.sc-pt:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+
+</style>
+</head>
+<body data-lang="both">
+<main>
+  <header>
+    <h1 id="h1"></h1>
+    <p class="sub" id="subtitle"></p>
+    <p class="srcline" id="source"></p>
+    <div class="bar">
+      <div class="langs" role="group" aria-label="Language / 语言">
+        <button class="chip" type="button" id="lang-en" aria-pressed="false">English</button>
+        <button class="chip" type="button" id="lang-zh" aria-pressed="false">中文</button>
+        <button class="chip" type="button" id="lang-both" aria-pressed="true">EN + 中文</button>
+      </div>
+      <label class="countwrap"><input type="checkbox" id="toggleCount" checked> <span id="countLabel"></span></label>
+      <span id="stats" aria-live="polite"></span>
+    </div>
+  </header>
+  <div id="content"></div>
+  <footer id="footer"></footer>
+</main>
+
+<script id="data" type="application/json">__DATA__</script>
+<script>
+(function(){
+"use strict";
+var DATA = JSON.parse(document.getElementById("data").textContent);
+var META = DATA.meta || {};
+var LIMIT = META.limit || 25;
+var lang = "both", ui = "zh";
+var dyn = [];   /* refreshers that run when the language changes */
+
+/* ------------------------------------------------------------ chrome strings */
+var I18N = {
+  en: {
+    countLabel: "Show word count for each sentence",
+    play: "Play animation", pause: "Pause animation", step: "Next step",
+    better_high: "A higher value is better.", better_low: "A lower value is better.",
+    src: "Source",
+    th_term: "Term", th_item: "Item", th_def: "STE definition", th_note: "Chinese explanation",
+    th_rule: "Rule", th_avoid: "Avoid", th_use: "Use",
+    h2con: "Related concepts", h3rules: "ASD-STE100 writing rules on this page",
+    stats: function(t, l, m){ return t + " sentences. Longest: " + l + " words. Limit: " + m + " words."; },
+    f1: function(m){ return "This page follows the main ASD-STE100 writing rules. A descriptive sentence has " + m + " words or fewer. Each paragraph has one topic. The text uses active voice and simple tenses. One word has one meaning. The text does not use vague words. A technical noun has a short definition at its first use."; },
+    f2: "This page is not an official ASD-STE100 check. It does not use the official dictionary.",
+    f3: "The numbers in the charts and in the text come from the source paper. The source line under each chart names the table.",
+    f4: "The figure cards are our redraws. They are not copies of the figures in the paper.",
+    fig_title: "Core figures and tables explained",
+    fig_intro: "Each card redraws one figure or table of the paper and explains it in plain words.",
+    fig_original: "What the paper shows", fig_read: "How to read it", fig_meaning: "What it tells us",
+    fig_caution: "Be careful", fig_analogy: "In everyday words", fig_redraw: "Our redraw",
+    better_corner: "Better", replay: "Replay", tap_dot: "Select a dot to see its values.",
+    th_model: "Model", ev_claim: "Claim in the text only", ev_partial: "Partly shown in a table", ev_table: "Shown in a table",
+    paper_says: "The paper says", plain_words: "In plain words"
+  },
+  zh: {
+    countLabel: "显示每个英文句子的词数",
+    play: "播放动画", pause: "暂停动画", step: "下一步",
+    better_high: "数值越高越好。", better_low: "数值越低越好。",
+    src: "数据来源",
+    th_term: "术语", th_item: "项目", th_def: "STE 英文定义", th_note: "中文解释",
+    th_rule: "规则", th_avoid: "避免", th_use: "改用",
+    h2con: "相关概念", h3rules: "本页用到的 ASD-STE100 写法",
+    stats: function(t, l, m){ return "共 " + t + " 句英文，最长 " + l + " 词，上限 " + m + " 词。"; },
+    f1: function(m){ return "这页文字遵守了 ASD-STE100 的几条核心写法：描述性句子不超过 " + m + " 个词，每段只讲一个主题，用主动语态和简单时态，一个词只表达一个意思，避免模糊修饰，技术名词在第一次出现时用简单句下定义。词数徽标只统计英文句子，中文是对照译文。"; },
+    f2: "这不是官方的 ASD-STE100 检查，也没有使用官方词典。",
+    f3: "图表和正文里的数字都来自被解读的论文，每张图下方的数据来源标明了对应的表格。",
+    f4: "图表解读卡片是我们重新绘制的，并非论文原图的复制。",
+    fig_title: "核心图表解读",
+    fig_intro: "每张卡片重绘论文中的一张图或一张表，并用通俗的话解释。",
+    fig_original: "论文里的这张图是什么", fig_read: "怎么看这张图", fig_meaning: "它说明了什么",
+    fig_caution: "需要留意", fig_analogy: "打个比方", fig_redraw: "我们的重绘",
+    better_corner: "更好", replay: "重播", tap_dot: "点选一个点查看数值。",
+    th_model: "模型", ev_claim: "仅正文声称", ev_partial: "表格只部分支持", ev_table: "有表格支持",
+    paper_says: "论文的说法", plain_words: "通俗地说"
+  }
+};
+function T(k){ return I18N[ui][k]; }
+
+/* ------------------------------------------------------------ helpers */
+function mk(tag, cls, text){
+  var e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+function countWords(s){ return s.replace(/\*\*/g, "").trim().split(/\s+/).length; }
+function fillInline(parent, s){
+  s.split(/(\*\*.+?\*\*)/).forEach(function(part){
+    if (!part) return;
+    if (part.indexOf("**") === 0) parent.appendChild(mk("b", "term", part.replace(/\*\*/g, "")));
+    else parent.appendChild(document.createTextNode(part));
+  });
+}
+function bil(parent, obj){
+  var a = mk("span", "L-en"), b = mk("span", "L-zh");
+  b.setAttribute("lang", "zh-CN");
+  fillInline(a, obj.en || ""); fillInline(b, obj.zh || "");
+  parent.appendChild(a); parent.appendChild(b);
+  return [a, b];
+}
+function lerp(a, b, f){ return a + (b - a) * f; }
+function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
+
+var total = 0, longest = 0;
+function sentSpan(sent){
+  var span = mk("span", "s");
+  fillInline(span, sent);
+  var n = countWords(sent);
+  total++; if (n > longest) longest = n;
+  var badge = mk("sup", "wc" + (n > LIMIT ? " over" : ""), String(n));
+  badge.setAttribute("title", n + " words");
+  span.appendChild(badge);
+  return span;
+}
+function sentSpans(td, sents){
+  sents.forEach(function(s, i){
+    td.appendChild(sentSpan(s));
+    if (i < sents.length - 1) td.appendChild(document.createTextNode(" "));
+  });
+}
+function renderProse(target, paras){
+  paras.forEach(function(para){
+    var pe = mk("p", "en-p");
+    sentSpans(pe, para.en);
+    var pz = mk("p", "zh-p");
+    pz.setAttribute("lang", "zh-CN");
+    para.zh.forEach(function(s){ var sp = mk("span", "s"); fillInline(sp, s); pz.appendChild(sp); });
+    target.appendChild(pe); target.appendChild(pz);
+  });
+}
+
+/* ------------------------------------------------------------ animation player */
+var reduceMotion = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+function makePlayer(cfg){
+  var raf = 0, playing = false, last = 0, p = 0, userPaused = false;
+  function tick(now){
+    if (!last) last = now;
+    var dt = Math.min(now - last, 100);
+    last = now;
+    p += dt / cfg.duration();
+    if (p >= 1) { p -= 1; if (cfg.onWrap) cfg.onWrap(); }
+    cfg.frame(p, true);
+    raf = requestAnimationFrame(tick);
+  }
+  function play(){ if (playing) return; playing = true; last = 0; raf = requestAnimationFrame(tick); cfg.onState(); }
+  function pause(){ if (!playing) return; playing = false; cancelAnimationFrame(raf); cfg.onState(); }
+  if ("IntersectionObserver" in window && !reduceMotion) {
+    new IntersectionObserver(function(entries){
+      entries.forEach(function(e){ if (e.isIntersecting) { if (!userPaused) play(); } else { pause(); } });
+    }, { threshold: 0.35 }).observe(cfg.target);
+  }
+  return {
+    toggle: function(){ if (playing) { userPaused = true; pause(); } else { userPaused = false; play(); } },
+    userPause: function(){ userPaused = true; pause(); },
+    isPlaying: function(){ return playing; },
+    reset: function(){ p = 0; },
+    jump: function(v){ p = v; cfg.frame(p, true); }
+  };
+}
+
+/* ------------------------------------------------------------ diagram */
+var NS = "http://www.w3.org/2000/svg";
+function svgEl(parent, tag, attrs, cls, text){
+  var e = document.createElementNS(NS, tag);
+  for (var k in attrs) e.setAttribute(k, attrs[k]);
+  if (cls) e.setAttribute("class", cls);
+  if (text !== undefined) e.textContent = text;
+  parent.appendChild(e);
+  return e;
+}
+function estW(str, size, bold){
+  var s = 0;
+  for (var i = 0; i < str.length; i++) s += (str.charCodeAt(i) > 0x2e80 ? 1 : (bold ? 0.62 : 0.56)) * size;
+  return s;
+}
+function fit(elm, str, w, base, bold){
+  elm.textContent = str;
+  var est = estW(str, base, bold), fs = base;
+  if (est > w - 14) fs = Math.max(9, base * (w - 14) / est);
+  elm.style.fontSize = fs.toFixed(1) + "px";
+}
+
+function buildDiagram(d, idx){
+  var uid = "dg" + idx;
+  var rows = d.rows, nodes = d.nodes, geo = {}, MX = 30, AW = 320, GAPY = 36;
+  var edges = (d.edges || []).map(function(e){ return Array.isArray(e) ? { from: e[0], to: e[1] } : e; });
+  var rowOf = {};
+  rows.forEach(function(r, ri){ r.forEach(function(n){ rowOf[n] = ri; }); });
+  edges.forEach(function(e){
+    var ra = rowOf[e.from], rb = rowOf[e.to];
+    e.kind = (e.loop || rb < ra) ? "loop" : (rb === ra ? "side" : "down");
+  });
+  var y = 14;
+  rows.forEach(function(ids, ri){
+    var hasSub = ids.some(function(n){ return nodes[n].sub; });
+    var h = hasSub ? 56 : 42;
+    var hasSide = edges.some(function(e){ return e.kind === "side" && rowOf[e.from] === ri; });
+    var gap = hasSide ? 36 : 14, n = ids.length;
+    var w = Math.min(300, (AW - (n - 1) * gap) / n), tw = n * w + (n - 1) * gap, x0 = MX + (AW - tw) / 2;
+    ids.forEach(function(nid, i){
+      var x = x0 + i * (w + gap);
+      geo[nid] = { x: x, y: y, w: w, h: h, cx: x + w / 2, cy: y + h / 2 };
+    });
+    y += h + GAPY;
+  });
+  var H = y - GAPY + 14, loops = 0;
+  edges.forEach(function(e){ if (e.kind === "loop") e.li = loops++; });
+  var W = loops ? 372 + (loops - 1) * 16 + 46 : 380;
+
+  var fig = mk("figure", "diagram");
+  var chipsWrap = mk("div", "scen");
+  var svg = svgEl(fig, "svg", { viewBox: "0 0 " + W + " " + H, role: "img", "aria-labelledby": uid + "-t " + uid + "-d" });
+  var tEl = svgEl(svg, "title", { id: uid + "-t" });
+  var dEl = svgEl(svg, "desc", { id: uid + "-d" });
+  var defs = svgEl(svg, "defs", {});
+  var mark = svgEl(defs, "marker", { id: uid + "-ah", viewBox: "0 0 10 10", refX: 8, refY: 5, markerWidth: 7, markerHeight: 7, orient: "auto-start-reverse" });
+  svgEl(mark, "path", { d: "M0 0 L10 5 L0 10 z" }, "d-head");
+
+  function pts(e){
+    var a = geo[e.from], b = geo[e.to];
+    if (e.kind === "down") return [[a.cx, a.y + a.h], [b.cx, b.y]];
+    if (e.kind === "side") return b.x > a.x ? [[a.x + a.w, a.cy], [b.x, b.cy]] : [[a.x, a.cy], [b.x + b.w, b.cy]];
+    var lx = 372 + e.li * 16;
+    return [[a.x + a.w, a.cy], [lx, a.cy], [lx, b.cy], [b.x + b.w, b.cy]];
+  }
+  var edgeEl = {}, edgePts = {}, edgeKeys = [], edgeLabel = {};
+  edges.forEach(function(e){
+    var key = e.from + ">" + e.to, P = pts(e);
+    var dStr = "M" + P.map(function(q){ return q[0].toFixed(1) + " " + q[1].toFixed(1); }).join(" L");
+    var pe = svgEl(svg, "path", { d: dStr, "marker-end": "url(#" + uid + "-ah)" }, "d-arrow");
+    edgeEl[key] = pe; edgePts[key] = P; edgeKeys.push(key);
+    if (e.label) {
+      var lx = 372 + e.li * 16 + 15, my = (P[1][1] + P[2][1]) / 2;
+      var lt = svgEl(svg, "text", { transform: "translate(" + lx + " " + my + ") rotate(-90)", "text-anchor": "middle" }, "d-s elabel");
+      edgeLabel[key] = { el: lt, obj: e.label };
+    }
+  });
+
+  var styleMap = { teal: "teal", amber: "on", dash: "dash", plain: "" };
+  var nodeIds = Object.keys(nodes), gEl = {}, rectEl = {}, texts = {};
+  nodeIds.forEach(function(nid){
+    var n = nodes[nid], g = geo[nid];
+    var grp = svgEl(svg, "g", {}, "node");
+    var rc = svgEl(grp, "rect", { x: g.x, y: g.y, width: g.w, height: g.h, rx: 8 }, "d-box " + (styleMap[n.style || "plain"] || ""));
+    var lab = svgEl(grp, "text", { x: g.cx, y: n.sub ? g.y + 22 : g.cy + 4.5, "text-anchor": "middle" }, "d-t");
+    var sub = n.sub ? svgEl(grp, "text", { x: g.cx, y: g.y + 42, "text-anchor": "middle" }, "d-s") : null;
+    gEl[nid] = grp; rectEl[nid] = rc; texts[nid] = { lab: lab, sub: sub, w: g.w };
+  });
+  var dots = [];
+  for (var i = 0; i < 3; i++) dots.push(svgEl(svg, "circle", { r: 6, cx: 0, cy: 0, opacity: 0 }, "d-dot"));
+
+  /* scenarios */
+  function autoScen(){
+    var order = [];
+    rows.forEach(function(r){ r.forEach(function(n){ order.push(n); }); });
+    var cap = function(n){ return nodes[n].desc || nodes[n].label; };
+    var steps = [{ nodes: [order[0]], edges: [], caption: cap(order[0]) }];
+    edges.filter(function(e){ return e.kind !== "loop"; }).forEach(function(e){
+      steps.push({ nodes: [e.to], edges: [[e.from, e.to]], caption: cap(e.to) });
+    });
+    edges.filter(function(e){ return e.kind === "loop"; }).forEach(function(e){
+      steps.push({ nodes: [e.to], edges: [[e.from, e.to]], caption: e.label || { en: "Repeat.", zh: "重复。" } });
+    });
+    return [{ id: "flow", label: { en: "Flow", zh: "流程" }, steps: steps }];
+  }
+  var scen = (d.scenarios && d.scenarios.length) ? d.scenarios : autoScen();
+  var cur = 0, stageIdx = 0, userChose = false, dimActive = false;
+
+  var stage = mk("p", "stage"), stEn = mk("span", "L-en"), stZh = mk("span", "L-zh");
+  stZh.setAttribute("lang", "zh-CN");
+  stage.appendChild(stEn); stage.appendChild(stZh);
+
+  function setStage(){
+    var st = scen[cur].steps[stageIdx] || scen[cur].steps[0], c = st.caption || { en: "", zh: "" };
+    stEn.textContent = c.en; stZh.textContent = c.zh;
+  }
+  function applyDim(){
+    var uN = {}, uE = {};
+    scen[cur].steps.forEach(function(s){
+      (s.nodes || []).forEach(function(n){ uN[n] = 1; });
+      (s.edges || []).forEach(function(e){ uE[e[0] + ">" + e[1]] = 1; uN[e[0]] = 1; uN[e[1]] = 1; });
+    });
+    nodeIds.forEach(function(n){ gEl[n].classList.toggle("dim", !uN[n]); });
+    edgeKeys.forEach(function(k){
+      edgeEl[k].classList.toggle("dim", !uE[k]);
+      if (edgeLabel[k]) edgeLabel[k].el.classList.toggle("dim", !uE[k]);
+    });
+  }
+  function frame(p, on){
+    if (on && !dimActive) { dimActive = true; applyDim(); }
+    var sc = scen[cur], n = sc.steps.length;
+    var si = Math.min(n - 1, Math.floor(p * n)), f = p * n - si, st = sc.steps[si];
+    var aN = {}, aE = {}, ek = [];
+    (st.nodes || []).forEach(function(x){ aN[x] = 1; });
+    (st.edges || []).forEach(function(e){ var k = e[0] + ">" + e[1]; aE[k] = 1; ek.push(k); });
+    nodeIds.forEach(function(x){ rectEl[x].classList.toggle("act", !!aN[x]); });
+    edgeKeys.forEach(function(k){ edgeEl[k].classList.toggle("act", !!aE[k]); });
+    var tt = clamp(f / 0.8, 0, 1); tt = tt * tt * (3 - 2 * tt);
+    dots.forEach(function(dot, i){
+      var k = ek[i];
+      if (!on || !k || !edgePts[k]) { dot.setAttribute("opacity", 0); return; }
+      var P = edgePts[k], segs = [], L = 0, j;
+      for (j = 0; j < P.length - 1; j++){ var sl = Math.abs(P[j+1][0] - P[j][0]) + Math.abs(P[j+1][1] - P[j][1]); segs.push(sl); L += sl; }
+      var pos = tt * L, q = P[P.length - 1];
+      for (j = 0; j < segs.length; j++){
+        if (pos <= segs[j]) { var ff = segs[j] ? pos / segs[j] : 0; q = [lerp(P[j][0], P[j+1][0], ff), lerp(P[j][1], P[j+1][1], ff)]; break; }
+        pos -= segs[j];
+      }
+      dot.setAttribute("cx", q[0]); dot.setAttribute("cy", q[1]); dot.setAttribute("opacity", 1);
+    });
+    if (si !== stageIdx) { stageIdx = si; setStage(); }
+  }
+
+  var bPlay = mk("button", "btn ghost"), bStep = mk("button", "btn ghost");
+  bPlay.type = "button"; bStep.type = "button";
+  var ctl = mk("div", "anim-ctl"); ctl.appendChild(bPlay); ctl.appendChild(bStep);
+  var player = makePlayer({
+    target: svg,
+    duration: function(){ return scen[cur].steps.length * 1700; },
+    frame: frame,
+    onState: function(){ bPlay.textContent = player.isPlaying() ? T("pause") : T("play"); },
+    onWrap: function(){ if (!userChose && scen.length > 1) setScenario((cur + 1) % scen.length, false); }
+  });
+  bPlay.addEventListener("click", function(){ player.toggle(); });
+  bStep.addEventListener("click", function(){
+    player.userPause();
+    var n = scen[cur].steps.length;
+    player.jump(((stageIdx + 1) % n + 0.85) / n);
+  });
+
+  var chipEls = [];
+  function setScenario(i, byUser){
+    cur = i; if (byUser) userChose = true;
+    stageIdx = 0; dimActive = true; applyDim(); player.reset(); setStage();
+    chipEls.forEach(function(c, k){ c.setAttribute("aria-pressed", k === cur ? "true" : "false"); });
+    if (!player.isPlaying()) frame(0, false);
+  }
+  if (scen.length > 1) {
+    scen.forEach(function(s, i){
+      var c = mk("button", "chip"); c.type = "button";
+      c.addEventListener("click", function(){ setScenario(i, true); });
+      chipsWrap.appendChild(c); chipEls.push(c);
+    });
+    chipEls[0].setAttribute("aria-pressed", "true");
+    fig.appendChild(chipsWrap);
+    fig.insertBefore(chipsWrap, svg);
+  }
+  fig.appendChild(ctl); fig.appendChild(stage);
+  if (d.caption) { var fc = mk("figcaption"); bil(fc, d.caption); fig.appendChild(fc); }
+
+  dyn.push(function(){
+    tEl.textContent = (d.title || {})[ui] || ""; dEl.textContent = (d.desc || {})[ui] || "";
+    nodeIds.forEach(function(nid){
+      var n = nodes[nid], t = texts[nid];
+      fit(t.lab, n.label[ui], t.w, 13, true);
+      if (t.sub) fit(t.sub, n.sub[ui], t.w, 12, false);
+    });
+    Object.keys(edgeLabel).forEach(function(k){ edgeLabel[k].el.textContent = edgeLabel[k].obj[ui]; });
+    chipEls.forEach(function(c, i){ c.textContent = scen[i].label[ui]; });
+    bPlay.textContent = player.isPlaying() ? T("pause") : T("play");
+    bStep.textContent = T("step");
+    setStage();
+  });
+  return fig;
+}
+
+/* ------------------------------------------------------------ chart */
+function buildChart(ch){
+  var w = mk("div", "widget chart");
+  var h3 = mk("h3"); bil(h3, ch.title); w.appendChild(h3);
+  var chips = mk("div", "chips"), hint = mk("p", "hint"), bars = mk("div", "cands"), src = mk("p", "src");
+  w.appendChild(chips); w.appendChild(hint); w.appendChild(bars); w.appendChild(src);
+  if (ch.note) { var np = mk("p", "src"); bil(np, ch.note); w.appendChild(np); }
+  var cur = 0, chipEls = [];
+  ch.metrics.forEach(function(m, i){
+    var b = mk("button", "chip"); b.type = "button";
+    b.addEventListener("click", function(){ cur = i; draw(); });
+    chips.appendChild(b); chipEls.push(b);
+  });
+  function draw(){
+    var m = ch.metrics[cur];
+    chipEls.forEach(function(b, i){
+      b.textContent = ch.metrics[i].label[ui];
+      b.setAttribute("aria-pressed", i === cur ? "true" : "false");
+    });
+    var vals = ch.items.map(function(it){ return it.values[m.id]; }).filter(function(v){ return typeof v === "number"; });
+    var max = Math.max.apply(null, vals), best = m.better === "low" ? Math.min.apply(null, vals) : max;
+    var dec = m.decimals !== undefined ? m.decimals : 1;
+    bars.textContent = "";
+    ch.items.forEach(function(it){
+      var v = it.values[m.id];
+      if (typeof v !== "number") return;
+      var row = mk("div", "cand" + (v === best ? " top" : ""));
+      row.appendChild(mk("span", "name", it.label));
+      var track = mk("div", "track"), fill = mk("div", "fill");
+      fill.style.width = (max > 0 ? Math.max(1.5, v / max * 100) : 0) + "%";
+      track.appendChild(fill); row.appendChild(track);
+      row.appendChild(mk("span", "pct", v.toFixed(dec) + (m.unit ? " " + m.unit : "")));
+      bars.appendChild(row);
+    });
+    hint.textContent = m.better ? T(m.better === "low" ? "better_low" : "better_high") : "";
+    src.textContent = T("src") + ": " + ch.source;
+  }
+  dyn.push(draw);
+  return w;
+}
+
+/* ------------------------------------------------------------ tables */
+function cell(tr, cls, label, labelKey){
+  var td = mk("td", cls);
+  if (label) td.setAttribute("data-label", label);
+  if (labelKey) td.setAttribute("data-lk", labelKey);
+  tr.appendChild(td);
+  return td;
+}
+function termCell(tr, t){
+  var td = cell(tr, "tm");
+  td.appendChild(mk("span", "t-en", t.en));
+  td.appendChild(mk("span", "t-zh", t.zh));
+}
+function headRow(thead, specs){
+  var tr = mk("tr");
+  specs.forEach(function(s){
+    var th = mk("th", s.cls || "");
+    if (s.key) dyn.push(function(){ th.textContent = T(s.key); });
+    else if (s.obj) dyn.push(function(){ th.textContent = s.obj[ui]; });
+    else th.textContent = s.text;
+    tr.appendChild(th);
+  });
+  thead.appendChild(tr);
+}
+function tableShell(){
+  var wrap = mk("div", "tbl"), table = mk("table"), thead = mk("thead"), tbody = mk("tbody");
+  table.appendChild(thead); table.appendChild(tbody); wrap.appendChild(table);
+  return { wrap: wrap, thead: thead, tbody: tbody };
+}
+function buildGlossary(t){
+  var sh = tableShell();
+  headRow(sh.thead, [{ key: "th_term" }, { key: "th_def", cls: "col-en" }, { key: "th_note", cls: "col-zh" }]);
+  t.rows.forEach(function(r){
+    var tr = mk("tr");
+    termCell(tr, r.term);
+    sentSpans(cell(tr, "col-en", "STE"), r.def);
+    cell(tr, "col-zh", "中文").textContent = r.note;
+    sh.tbody.appendChild(tr);
+  });
+  return sh.wrap;
+}
+function buildCompare(t){
+  var sh = tableShell();
+  var specs = [{ key: "th_item" }];
+  t.cols.forEach(function(c){ specs.push({ obj: c, cls: "col-en" }); });
+  specs.push({ key: "th_note", cls: "col-zh" });
+  headRow(sh.thead, specs);
+  t.rows.forEach(function(r){
+    var tr = mk("tr");
+    termCell(tr, r.item);
+    r.cells.forEach(function(c, i){
+      var td = cell(tr, "col-en", t.cols[i].en);
+      sentSpans(td, c);
+      var tdd = td;
+      dyn.push(function(){ tdd.setAttribute("data-label", t.cols[i][ui]); });
+    });
+    cell(tr, "col-zh", "中文").textContent = r.note;
+    sh.tbody.appendChild(tr);
+  });
+  return sh.wrap;
+}
+var RULES = [
+  [{en:"Short sentences",zh:"短句"}, "The LLM, which has a neural network with billions of numbers that people call parameters, learns from text.",
+    ["The LLM has a neural network.", "The network has billions of numbers.", "These numbers are parameters."], "一句话只讲一件事。描述性句子不超过 25 个词。"],
+  [{en:"Active voice",zh:"主动语态"}, "The next token is calculated by the LLM.",
+    ["The LLM calculates the next token."], "用主动语态，让谁做了什么一目了然。"],
+  [{en:"Simple tenses",zh:"简单时态"}, "The router will have selected two experts before the calculation begins.",
+    ["The router selects 2 experts.", "Then the experts do the calculation."], "用简单的时态描述事实，避免将来完成时这类复杂时态。"],
+  [{en:"No vague words",zh:"不用模糊词"}, "The model is very fast and uses a huge amount of power.",
+    ["The model does fewer calculations for each token."], "用具体的说法代替 very、huge 这类模糊词。"],
+  [{en:"One word, one meaning",zh:"一词一义"}, "Each expert is a small network. The sub-networks do the calculation. The specialists do not operate.",
+    ["Each expert is a small network.", "The experts do the calculation.", "The other experts do not operate."], "同一个概念始终用同一个词，不要换着叫。"],
+  [{en:"Define technical nouns",zh:"先定义技术名词"}, "The router does gating.",
+    ["The router is a small network.", "It selects the experts for each token."], "技术名词第一次出现时，用简单句说明它是什么。"],
+  [{en:"One topic for each paragraph",zh:"一段一个主题"}, "One paragraph about tokens, parameters, training, and experts.",
+    ["A paragraph has one topic.", "It has 6 sentences or fewer."], "每段只讲一个主题，不超过 6 句。"]
+];
+function buildRules(){
+  var sh = tableShell();
+  headRow(sh.thead, [{ key: "th_rule" }, { key: "th_avoid" }, { key: "th_use" }, { key: "th_note", cls: "col-zh" }]);
+  RULES.forEach(function(r){
+    var tr = mk("tr");
+    termCell(tr, r[0]);
+    var ta = cell(tr, "avoid", "", "th_avoid"); ta.textContent = r[1];
+    sentSpans(cell(tr, "", "", "th_use"), r[3 - 1]);
+    cell(tr, "col-zh", "中文").textContent = r[3];
+    sh.tbody.appendChild(tr);
+  });
+  return sh.wrap;
+}
+
+/* ------------------------------------------------------------ figure cards */
+function niceTicks(min, max, n){
+  var span = max - min, step = Math.pow(10, Math.floor(Math.log10(span / n))), err = span / n / step;
+  if (err >= 5) step *= 5; else if (err >= 2) step *= 2;
+  var lo = Math.floor(min / step) * step, hi = Math.ceil(max / step) * step, t = [];
+  for (var v = lo; v <= hi + step * 1e-6; v += step) t.push(+v.toFixed(6));
+  return t;
+}
+var scIdx = 0;
+function buildScatter(sc){
+  scIdx++;
+  var W = 420, H = 300, L = 52, R = 20, T0 = 20, B = 48;
+  var xs = sc.points.map(function(p){ return p.x; }), ys = sc.points.map(function(p){ return p.y; });
+  var xmax = Math.max.apply(null, xs), ymax = Math.max.apply(null, ys), ymin = Math.min.apply(null, ys);
+  var xt = niceTicks(sc.xmin !== undefined ? sc.xmin : 0, xmax * 1.08, 5);
+  var yt = niceTicks(sc.ymin !== undefined ? sc.ymin : ymin - (ymax - ymin) * 0.3, ymax + (ymax - ymin) * 0.12, 5);
+  var x0 = xt[0], x1 = xt[xt.length - 1], y0 = yt[0], y1 = yt[yt.length - 1];
+  function X(v){ return L + (v - x0) / (x1 - x0) * (W - L - R); }
+  function Y(v){ return H - B - (v - y0) / (y1 - y0) * (H - B - T0); }
+
+  var fig = mk("figure", "diagram scatter");
+  var svg = svgEl(fig, "svg", { viewBox: "0 0 " + W + " " + H, role: "img", "aria-labelledby": "sc" + scIdx + "t" });
+  var tEl = svgEl(svg, "title", { id: "sc" + scIdx + "t" });
+  /* better corner */
+  if (sc.better) {
+    var right = sc.better.indexOf("right") >= 0, bottom = sc.better.indexOf("bottom") >= 0;
+    var bw = 92, bh = 40, bx = right ? W - R - bw : L, by = bottom ? H - B - bh : T0;
+    svgEl(svg, "rect", { x: bx, y: by, width: bw, height: bh, rx: 8 }, "sc-zone");
+    var bt = svgEl(svg, "text", { x: bx + bw / 2, y: by + bh / 2 + 4, "text-anchor": "middle" }, "d-s sc-zone-t");
+    var arrow = (bottom ? "\u2199" : "\u2196"); if (right) arrow = bottom ? "\u2198" : "\u2197";
+  }
+  xt.forEach(function(v){
+    svgEl(svg, "line", { x1: X(v), y1: T0, x2: X(v), y2: H - B }, "sc-grid");
+    svgEl(svg, "text", { x: X(v), y: H - B + 15, "text-anchor": "middle" }, "d-s sm", String(v));
+  });
+  yt.forEach(function(v){
+    svgEl(svg, "line", { x1: L, y1: Y(v), x2: W - R, y2: Y(v) }, "sc-grid");
+    svgEl(svg, "text", { x: L - 6, y: Y(v) + 4, "text-anchor": "end" }, "d-s sm", String(v));
+  });
+  svgEl(svg, "line", { x1: L, y1: H - B, x2: W - R, y2: H - B }, "sc-axis");
+  svgEl(svg, "line", { x1: L, y1: T0, x2: L, y2: H - B }, "sc-axis");
+  var xl = svgEl(svg, "text", { x: (L + W - R) / 2, y: H - 8, "text-anchor": "middle" }, "d-s");
+  var yl = svgEl(svg, "text", { transform: "translate(13 " + ((T0 + H - B) / 2) + ") rotate(-90)", "text-anchor": "middle" }, "d-s");
+  var line = svgEl(svg, "polyline", { points: "" }, "sc-line");
+  var ptEls = [], lbEls = [];
+  sc.points.forEach(function(p, i){
+    var c = svgEl(svg, "circle", { cx: X(p.x), cy: Y(p.y), r: 7, tabindex: 0, role: "button", "aria-label": p.label }, "sc-pt");
+    var lb = svgEl(svg, "text", { x: X(p.x) + 9, y: Y(p.y) + (i % 2 ? 16 : -9) }, "d-t sc-lb", p.label);
+    lb.style.fontSize = "12px";
+    ptEls.push(c); lbEls.push(lb);
+    var pick = function(){ select(i); };
+    c.addEventListener("click", pick);
+    c.addEventListener("keydown", function(e){ if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(); } });
+  });
+  var readout = mk("p", "stage"), bReplay = mk("button", "btn ghost"); bReplay.type = "button";
+  var ctl = mk("div", "anim-ctl"); ctl.appendChild(bReplay);
+  fig.appendChild(ctl); fig.appendChild(readout);
+  var sel = -1;
+  function fmt(v, d){ return typeof d === "number" ? v.toFixed(d) : String(v); }
+  function select(i){
+    sel = i;
+    ptEls.forEach(function(c, k){ c.classList.toggle("sel", k === i); });
+    var p = sc.points[i];
+    readout.textContent = p.label + ": " + sc.x.label[ui] + " " + fmt(p.x, sc.x.decimals) + (sc.x.unit ? " " + sc.x.unit : "") +
+      ", " + sc.y.label[ui] + " " + fmt(p.y, sc.y.decimals) + (sc.y.unit ? " " + sc.y.unit : "");
+  }
+  function reveal(k){
+    line.setAttribute("points", sc.points.slice(0, k + 1).map(function(p){ return X(p.x).toFixed(1) + "," + Y(p.y).toFixed(1); }).join(" "));
+    ptEls.forEach(function(c, i){ c.classList.toggle("hide", i > k); lbEls[i].classList.toggle("hide", i > k); });
+  }
+  var timer = 0;
+  function play(){
+    clearInterval(timer);
+    if (reduceMotion) { reveal(sc.points.length - 1); return; }
+    var k = -1; reveal(-1);
+    timer = setInterval(function(){ k++; reveal(k); if (k >= sc.points.length - 1) clearInterval(timer); }, 420);
+  }
+  bReplay.addEventListener("click", play);
+  reveal(sc.points.length - 1);
+  var played = false;
+  if ("IntersectionObserver" in window && !reduceMotion) {
+    new IntersectionObserver(function(es){ es.forEach(function(e){ if (e.isIntersecting && !played) { played = true; play(); } }); }, { threshold: 0.5 }).observe(svg);
+  }
+  if (sc.caption) { var fc = mk("figcaption"); bil(fc, sc.caption); fig.appendChild(fc); }
+  dyn.push(function(){
+    tEl.textContent = sc.x.label[ui] + " / " + sc.y.label[ui];
+    xl.textContent = sc.x.label[ui] + (sc.x.unit ? " (" + sc.x.unit + ")" : "") + (sc.x.better ? " " + (sc.x.better === "low" ? "\u2190" : "\u2192") : "");
+    yl.textContent = sc.y.label[ui] + (sc.y.unit ? " (" + sc.y.unit + ")" : "") + (sc.y.better ? " " + (sc.y.better === "low" ? "\u2193" : "\u2191") : "");
+    if (bt) bt.textContent = arrow + " " + T("better_corner");
+    bReplay.textContent = T("replay");
+    if (sel >= 0) select(sel); else readout.textContent = T("tap_dot");
+  });
+  return fig;
+}
+
+function buildDataTable(dt){
+  var wrap = mk("div", "dtwrap"), table = mk("table", "dtbl"), thead = mk("thead"), tbody = mk("tbody");
+  var tr = mk("tr"), ths = [];
+  var th0 = mk("th"); tr.appendChild(th0);
+  dt.columns.forEach(function(c){ var th = mk("th"); ths.push(th); tr.appendChild(th); });
+  thead.appendChild(tr);
+  var best = {};
+  dt.columns.forEach(function(c){
+    var vals = dt.rows.map(function(r){ return r.values[c.id]; }).filter(function(v){ return typeof v === "number"; });
+    best[c.id] = c.better === "low" ? Math.min.apply(null, vals) : (c.better === "high" ? Math.max.apply(null, vals) : null);
+  });
+  dt.rows.forEach(function(r){
+    var row = mk("tr");
+    row.appendChild(mk("td", "", r.label));
+    dt.columns.forEach(function(c){
+      var v = r.values[c.id], td = mk("td", best[c.id] !== null && v === best[c.id] ? "best" : "");
+      td.textContent = typeof v === "number" ? v.toFixed(c.decimals !== undefined ? c.decimals : 1) : "";
+      row.appendChild(td);
+    });
+    tbody.appendChild(row);
+  });
+  table.appendChild(thead); table.appendChild(tbody); wrap.appendChild(table);
+  var box = mk("div"); box.appendChild(wrap);
+  var src = mk("p", "src"); box.appendChild(src);
+  dyn.push(function(){
+    th0.textContent = (dt.first && dt.first[ui]) || T("th_model");
+    dt.columns.forEach(function(c, i){
+      ths[i].textContent = c.label[ui] + (c.unit ? " (" + c.unit + ")" : "") + (c.better ? (c.better === "low" ? " \u2193" : " \u2191") : "");
+    });
+    src.textContent = T("src") + ": " + dt.source;
+  });
+  return box;
+}
+
+function buildTimeline(tl){
+  var box = mk("div"), ol = mk("ol", "timeline");
+  tl.items.forEach(function(it){
+    var li = mk("li", it.mark || "");
+    var head = mk("div", "t-head", it.year + "  " + it.name);
+    var en = mk("div", "en-p"); sentSpans(en, it.text.en);
+    var zh = mk("div", "zh-p"); zh.setAttribute("lang", "zh-CN");
+    it.text.zh.forEach(function(z){ var sp = mk("span", "s"); fillInline(sp, z); zh.appendChild(sp); });
+    li.appendChild(head); li.appendChild(en); li.appendChild(zh);
+    ol.appendChild(li);
+  });
+  box.appendChild(ol);
+  var src = mk("p", "src"); box.appendChild(src);
+  dyn.push(function(){ src.textContent = T("src") + ": " + tl.source; });
+  return box;
+}
+
+function buildPanels(pn){
+  var box = mk("div"), grid = mk("div", "panels");
+  pn.items.forEach(function(it){
+    var panel = mk("div", "panel");
+    var head = mk("div", "t-head"); head.appendChild(mk("span", "fid", it.tag)); head.appendChild(document.createTextNode(" "));
+    var ttl = mk("span"); bil(ttl, it.title); head.appendChild(ttl);
+    panel.appendChild(head);
+    var lab1 = mk("div", "plabel"); dyn.push(function(){ lab1.textContent = T("paper_says"); });
+    var c1 = mk("div", "prose");
+    renderProse(c1, [it.claim]);
+    var lab2 = mk("div", "plabel"); dyn.push(function(){ lab2.textContent = T("plain_words"); });
+    var c2 = mk("div", "prose");
+    renderProse(c2, [it.plain]);
+    var ev = mk("div", "evrow"), badge = mk("span", "ev " + it.evidence.level), note = mk("span", "evnote");
+    bil(note, it.evidence.note);
+    ev.appendChild(badge); ev.appendChild(note);
+    dyn.push(function(){ badge.textContent = T("ev_" + it.evidence.level); });
+    [lab1, c1, lab2, c2, ev].forEach(function(n){ panel.appendChild(n); });
+    grid.appendChild(panel);
+  });
+  box.appendChild(grid);
+  return box;
+}
+
+var fcIdx = 0;
+function blockHead(key){ var h = mk("h4"); dyn.push(function(){ h.textContent = T(key); }); return h; }
+function buildFigureCard(card){
+  var rd = card.redraw, wide = (card.layout === "wide") || ["datatable", "timeline", "panels"].indexOf(rd.type) >= 0;
+  var art = mk("article", "fcard"); art.id = card.id || ("fig" + (fcIdx++));
+  var head = mk("header", "fhead");
+  head.appendChild(mk("span", "fid fid-en", card.label.en));
+  var zl = mk("span", "fid fid-zh", card.label.zh); head.appendChild(zl);
+  var h3 = mk("h3"); bil(h3, card.title); head.appendChild(h3);
+  art.appendChild(head);
+
+  var grid = mk("div", "fgrid " + (wide ? "wide" : "side"));
+  var vis = mk("div", "fvis");
+  var vh = blockHead("fig_redraw"); vis.appendChild(vh);
+  var w;
+  if (rd.type === "scatter") w = buildScatter(rd);
+  else if (rd.type === "diagram") w = buildDiagram(rd.diagram || rd, 100 + (fcIdx++));
+  else if (rd.type === "chart") w = buildChart(rd.chart || rd);
+  else if (rd.type === "datatable") w = buildDataTable(rd);
+  else if (rd.type === "timeline") w = buildTimeline(rd);
+  else w = buildPanels(rd);
+  vis.appendChild(w);
+  if (card.redraw_note) { var rn = mk("p", "src"); bil(rn, card.redraw_note); vis.appendChild(rn); }
+
+  var txt = mk("div", "ftext");
+  function blk(key, para, extra){
+    var b = mk("div", "fblock " + (extra || ""));
+    b.appendChild(blockHead(key));
+    var pr = mk("div", "prose"); renderProse(pr, [para]); b.appendChild(pr);
+    txt.appendChild(b);
+  }
+  blk("fig_original", card.original);
+  blk("fig_read", card.plain.read);
+  blk("fig_meaning", card.plain.meaning);
+  blk("fig_caution", card.plain.caution, "caution");
+  if (card.analogy) {
+    var an = mk("div", "analogy zh-only"); an.setAttribute("lang", "zh-CN");
+    an.appendChild(blockHead("fig_analogy"));
+    an.appendChild(mk("p", "", card.analogy.zh));
+    txt.appendChild(an);
+  }
+  grid.appendChild(vis); grid.appendChild(txt);
+  art.appendChild(grid);
+  return art;
+}
+
+/* ------------------------------------------------------------ page assembly */
+var h1 = document.getElementById("h1");
+bil(h1, META.title || { en: "Paper explainer", zh: "论文解读" });
+if (META.subtitle) bil(document.getElementById("subtitle"), META.subtitle);
+else document.getElementById("subtitle").style.display = "none";
+
+(function(){
+  var s = META.source, line = document.getElementById("source");
+  if (!s) { line.style.display = "none"; return; }
+  var lab = mk("span"), a = mk("a", "", s.title);
+  if (s.url) { a.href = s.url; a.target = "_blank"; a.rel = "noopener"; }
+  var rest = mk("span", "", [s.authors, s.id, s.date].filter(Boolean).map(function(x){ return " \u00B7 " + x; }).join("").replace(/^ \u00B7 /, " \u2014 "));
+  line.appendChild(lab); line.appendChild(a); line.appendChild(rest);
+  dyn.push(function(){ lab.textContent = T("src") + ": "; });
+})();
+
+var content = document.getElementById("content");
+var dgIdx = 0;
+(DATA.sections || []).forEach(function(sec, si){
+  var section = mk("section"); section.id = sec.id || ("s" + si);
+  var h2 = mk("h2"); bil(h2, sec.title); section.appendChild(h2);
+  var grid = mk("div", "grid" + (sec.diagram ? "" : " single"));
+  var left = mk("div"), prose = mk("div", "prose");
+  renderProse(prose, sec.paras || []);
+  left.appendChild(prose);
+  if (sec.chart) { var cw = buildChart(sec.chart); cw.style.marginTop = "1.25rem"; left.appendChild(cw); }
+  grid.appendChild(left);
+  if (sec.diagram) {
+    var col = mk("div", "figcol");
+    col.appendChild(buildDiagram(sec.diagram, dgIdx++));
+    grid.appendChild(col);
+  }
+  section.appendChild(grid);
+  content.appendChild(section);
+});
+
+var FIG = DATA.figures;
+if (FIG && FIG.cards && FIG.cards.length) {
+  var fsec = mk("section"); fsec.id = "figures";
+  var fh2 = mk("h2"); bil(fh2, FIG.title || { en: "Core figures and tables explained", zh: "核心图表解读" });
+  fsec.appendChild(fh2);
+  var fintro = mk("p", "sub");
+  if (FIG.intro) bil(fintro, FIG.intro); else dyn.push(function(){ fintro.textContent = T("fig_intro"); });
+  fsec.appendChild(fintro);
+  FIG.cards.forEach(function(card){ fsec.appendChild(buildFigureCard(card)); });
+  content.appendChild(fsec);
+}
+
+var tables = DATA.tables || [];
+if (tables.length || DATA.rules_table !== false) {
+  var cs = mk("section"); cs.id = "concepts";
+  var ch2 = mk("h2"); dyn.push(function(){ ch2.textContent = (META.concepts_title && META.concepts_title[ui]) || T("h2con"); });
+  cs.appendChild(ch2);
+  tables.forEach(function(t){
+    var h3 = mk("h3", "tbl-h"); bil(h3, t.title); cs.appendChild(h3);
+    cs.appendChild(t.kind === "compare" ? buildCompare(t) : buildGlossary(t));
+  });
+  if (DATA.rules_table !== false) {
+    var rh = mk("h3", "tbl-h"); dyn.push(function(){ rh.textContent = T("h3rules"); });
+    cs.appendChild(rh); cs.appendChild(buildRules());
+  }
+  content.appendChild(cs);
+}
+
+var footer = document.getElementById("footer");
+var fp = [mk("p"), mk("p"), mk("p"), mk("p")];
+if (!(FIG && FIG.cards && FIG.cards.length)) fp.pop();
+fp.forEach(function(p){ footer.appendChild(p); });
+(DATA.footer_notes || []).forEach(function(n){ var p = mk("p"); bil(p, n); footer.appendChild(p); });
+dyn.push(function(){ fp[0].textContent = T("f1")(LIMIT); fp[1].textContent = T("f2"); fp[2].textContent = T("f3"); if (fp[3]) fp[3].textContent = T("f4"); });
+
+/* ------------------------------------------------------------ language switching */
+function applyLang(){
+  ui = lang === "en" ? "en" : "zh";
+  document.documentElement.lang = ui === "zh" ? "zh-CN" : "en";
+  document.body.setAttribute("data-lang", lang);
+  ["en", "zh", "both"].forEach(function(m){
+    document.getElementById("lang-" + m).setAttribute("aria-pressed", m === lang ? "true" : "false");
+  });
+  document.getElementById("countLabel").textContent = T("countLabel");
+  document.getElementById("stats").textContent = T("stats")(total, longest, LIMIT);
+  Array.prototype.forEach.call(document.querySelectorAll("[data-lk]"), function(el){
+    el.setAttribute("data-label", T(el.getAttribute("data-lk")));
+  });
+  dyn.forEach(function(f){ f(); });
+}
+["en", "zh", "both"].forEach(function(m){
+  document.getElementById("lang-" + m).addEventListener("click", function(){ lang = m; applyLang(); });
+});
+document.getElementById("toggleCount").addEventListener("change", function(e){
+  document.body.classList.toggle("nocount", !e.target.checked);
+});
+applyLang();
+})();
+</script>
+</body>
+</html>

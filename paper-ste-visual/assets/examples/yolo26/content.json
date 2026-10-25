@@ -1,0 +1,690 @@
+{
+  "meta": {
+    "title": {"en": "YOLO26: an edge-first object detector", "zh": "YOLO26：面向边缘设备的目标检测器"},
+    "subtitle": {
+      "en": "A plain-language reading of one paper. The English follows ASD-STE100 writing rules.",
+      "zh": "对一篇论文的通俗解读，英文部分按 ASD-STE100 的写法规则写成。"
+    },
+    "source": {
+      "title": "YOLO26: Key Architectural Enhancements and Performance Benchmarking for Real-Time Object Detection",
+      "authors": "Ranjan Sapkota, Rahul Harsha Cheppally, Ajay Sharda, Manoj Karkee",
+      "id": "arXiv:2509.25164v5",
+      "date": "17 March 2026",
+      "url": "https://arxiv.org/abs/2509.25164v5"
+    },
+    "limit": 25,
+    "derived_numbers": ["0.6", "0.8", "16.6"]
+  },
+
+  "sections": [
+    {
+      "id": "problem",
+      "title": {"en": "What problem does YOLO26 solve?", "zh": "YOLO26 要解决什么问题？"},
+      "paras": [
+        {
+          "en": ["An **object detector** finds objects in an image.", "It gives a box and a class name for each object."],
+          "zh": ["**目标检测器**在图像中找出物体。", "它为每个物体给出一个框和一个类别名称。"]
+        },
+        {
+          "en": ["**YOLO** is a family of fast detectors.", "Each new YOLO model changes the design to improve speed or accuracy.", "YOLO26 appeared in September 2025."],
+          "zh": ["**YOLO** 是一个速度很快的检测器家族。", "每个新的 YOLO 模型都会修改设计，以提高速度或精度。", "YOLO26 出现在 2025 年 9 月。"]
+        },
+        {
+          "en": ["The paper says that earlier models, such as YOLOv12 and YOLOv13, keep two parts that cause problems on small devices.", "These parts are **NMS** and **DFL**.", "They add delay and make model export difficult."],
+          "zh": ["论文指出，YOLOv12 和 YOLOv13 等早期模型保留了两个在小型设备上会带来麻烦的部分。", "这两个部分是 **NMS** 和 **DFL**。", "它们会增加延迟，也让模型导出变得困难。"]
+        },
+        {
+          "en": ["The paper wants YOLO26 to run well on an **edge device**.", "An edge device is a small computer, for example a drone or a smart camera."],
+          "zh": ["论文希望 YOLO26 能在**边缘设备**上顺畅运行。", "边缘设备是小型计算机，例如无人机或智能摄像头。"]
+        },
+        {
+          "en": ["The paper lists five tasks for YOLO26.", "These tasks are detection, instance segmentation, pose estimation, oriented detection, and classification."],
+          "zh": ["论文列出了 YOLO26 的五个任务。", "它们是检测、实例分割、姿态估计、旋转框检测和分类。"]
+        }
+      ]
+    },
+
+    {
+      "id": "pipeline",
+      "title": {"en": "How the YOLO26 pipeline works", "zh": "YOLO26 的处理流程"},
+      "paras": [
+        {
+          "en": ["The model reads an image or a video frame.", "It resizes the image and normalizes the values."],
+          "zh": ["模型读取一张图像或一帧视频。", "它先缩放图像并对数值做归一化。"]
+        },
+        {
+          "en": ["The **backbone** finds features at many scales.", "The **neck** merges these features.", "The **head** predicts the boxes and the classes."],
+          "zh": ["**主干网络**在多个尺度上提取特征。", "**颈部**把这些特征融合起来。", "**检测头**预测框和类别。"]
+        },
+        {
+          "en": ["The head of YOLO26 gives the final boxes directly.", "The pipeline has no NMS step after the head."],
+          "zh": ["YOLO26 的检测头直接给出最终的框。", "检测头之后的流程里没有 NMS 步骤。"]
+        }
+      ],
+      "diagram": {
+        "title": {"en": "The YOLO26 inference pipeline", "zh": "YOLO26 的推理流程"},
+        "desc": {
+          "en": "An image goes through preprocessing, the backbone, the neck, and the head. The model gives the final detections without NMS.",
+          "zh": "图像依次经过预处理、主干网络、颈部和检测头，模型直接给出最终检测结果，没有 NMS。"
+        },
+        "rows": [["in"], ["pre"], ["bb"], ["neck"], ["head"], ["out"]],
+        "nodes": {
+          "in":   {"label": {"en": "Image or video", "zh": "图像或视频"}},
+          "pre":  {"label": {"en": "Resize and normalize", "zh": "缩放与归一化"}},
+          "bb":   {"label": {"en": "Backbone", "zh": "主干网络"}, "sub": {"en": "Finds features", "zh": "提取特征"}, "style": "teal"},
+          "neck": {"label": {"en": "Neck", "zh": "颈部"}, "sub": {"en": "Merges the scales", "zh": "融合多尺度特征"}, "style": "teal"},
+          "head": {"label": {"en": "Direct regression head", "zh": "直接回归检测头"}, "sub": {"en": "Boxes and classes", "zh": "输出框和类别"}, "style": "teal"},
+          "out":  {"label": {"en": "Final detections", "zh": "最终检测结果"}, "sub": {"en": "No NMS step", "zh": "没有 NMS 步骤"}}
+        },
+        "edges": [["in", "pre"], ["pre", "bb"], ["bb", "neck"], ["neck", "head"], ["head", "out"]],
+        "scenarios": [
+          {
+            "id": "infer",
+            "label": {"en": "Inference", "zh": "推理"},
+            "steps": [
+              {"nodes": ["in"], "edges": [], "caption": {"en": "The model receives an image or a video frame.", "zh": "模型接收一张图像或一帧视频。"}},
+              {"nodes": ["pre"], "edges": [["in", "pre"]], "caption": {"en": "The model resizes the image and normalizes the values.", "zh": "模型缩放图像并对数值做归一化。"}},
+              {"nodes": ["bb"], "edges": [["pre", "bb"]], "caption": {"en": "The backbone finds features at many scales.", "zh": "主干网络在多个尺度上提取特征。"}},
+              {"nodes": ["neck"], "edges": [["bb", "neck"]], "caption": {"en": "The neck merges the features in an efficient way.", "zh": "颈部以较低的计算代价融合这些特征。"}},
+              {"nodes": ["head"], "edges": [["neck", "head"]], "caption": {"en": "The head predicts the boxes and the classes directly.", "zh": "检测头直接预测框和类别。"}},
+              {"nodes": ["out"], "edges": [["head", "out"]], "caption": {"en": "The model gives the final detections. It does not use NMS.", "zh": "模型给出最终检测结果，不使用 NMS。"}}
+            ]
+          }
+        ],
+        "caption": {
+          "en": "This diagram follows the pipeline in Figure 3 of the paper, but it is simpler.",
+          "zh": "这张图依据论文图 3 的流程绘制，但做了简化。"
+        }
+      }
+    },
+
+    {
+      "id": "nms-dfl",
+      "title": {"en": "Change 1: no DFL and no NMS", "zh": "改动一：去掉 DFL 和 NMS"},
+      "paras": [
+        {
+          "en": ["**DFL** lets a model predict a probability distribution for the box coordinates.", "Earlier YOLO models, for example YOLOv8 and YOLO11, use it.", "The paper says that DFL needs special handling during export."],
+          "zh": ["**DFL** 让模型为框的坐标预测一个概率分布。", "早期的 YOLO 模型，例如 YOLOv8 和 YOLO11，使用它。", "论文指出，DFL 在导出时需要特殊处理。"]
+        },
+        {
+          "en": ["**NMS** removes duplicate boxes.", "It keeps the box with the highest confidence score for each object.", "NMS also needs an **IoU threshold** that people tune by hand."],
+          "zh": ["**NMS** 用来删除重复的框。", "对每个物体，它只保留置信度最高的框。", "NMS 还需要人工调节的 **IoU 阈值**。"]
+        },
+        {
+          "en": ["YOLO26 removes DFL, and it removes NMS.", "The head predicts direct boxes that are not redundant.", "The paper says that this change makes export and deployment simpler."],
+          "zh": ["YOLO26 去掉了 DFL，也去掉了 NMS。", "检测头直接预测没有冗余的框。", "论文称这一改动让导出和部署更简单。"]
+        }
+      ],
+      "diagram": {
+        "title": {"en": "Earlier models and YOLO26 compared", "zh": "早期模型与 YOLO26 对比"},
+        "desc": {
+          "en": "Earlier models send the head output through DFL decoding and NMS. YOLO26 sends the head output directly to the final detections.",
+          "zh": "早期模型的检测头输出要经过 DFL 解码和 NMS；YOLO26 的检测头输出直接成为最终检测结果。"
+        },
+        "rows": [["bb"], ["head"], ["dfl", "nms"], ["out"]],
+        "nodes": {
+          "bb":   {"label": {"en": "Backbone and neck", "zh": "主干网络与颈部"}},
+          "head": {"label": {"en": "Prediction head", "zh": "预测头"}},
+          "dfl":  {"label": {"en": "DFL decoding", "zh": "DFL 解码"}, "sub": {"en": "Earlier models", "zh": "早期模型"}, "style": "dash"},
+          "nms":  {"label": {"en": "NMS filter", "zh": "NMS 过滤"}, "sub": {"en": "Earlier models", "zh": "早期模型"}, "style": "dash"},
+          "out":  {"label": {"en": "Final detections", "zh": "最终检测结果"}}
+        },
+        "edges": [["bb", "head"], ["head", "dfl"], ["dfl", "nms"], ["nms", "out"], ["head", "out"]],
+        "scenarios": [
+          {
+            "id": "old",
+            "label": {"en": "Earlier models", "zh": "早期模型"},
+            "steps": [
+              {"nodes": ["bb"], "edges": [], "caption": {"en": "The backbone and the neck make the features.", "zh": "主干网络和颈部生成特征。"}},
+              {"nodes": ["head"], "edges": [["bb", "head"]], "caption": {"en": "The head predicts many boxes.", "zh": "检测头预测出许多框。"}},
+              {"nodes": ["dfl"], "edges": [["head", "dfl"]], "caption": {"en": "DFL turns a distribution into box edges. Export tools need special handling for it.", "zh": "DFL 把分布转换成框的边。导出工具需要对它做特殊处理。"}},
+              {"nodes": ["nms"], "edges": [["dfl", "nms"]], "caption": {"en": "NMS removes duplicate boxes. Its IoU threshold needs tuning.", "zh": "NMS 删除重复的框，它的 IoU 阈值需要调节。"}},
+              {"nodes": ["out"], "edges": [["nms", "out"]], "caption": {"en": "The model gives the final detections after the extra steps.", "zh": "经过这些额外步骤后，模型才给出最终检测结果。"}}
+            ]
+          },
+          {
+            "id": "new",
+            "label": {"en": "YOLO26", "zh": "YOLO26"},
+            "steps": [
+              {"nodes": ["bb"], "edges": [], "caption": {"en": "The backbone and the neck make the features.", "zh": "主干网络和颈部生成特征。"}},
+              {"nodes": ["head"], "edges": [["bb", "head"]], "caption": {"en": "The head predicts direct boxes. The boxes are not redundant.", "zh": "检测头直接预测框，这些框没有冗余。"}},
+              {"nodes": ["out"], "edges": [["head", "out"]], "caption": {"en": "The model skips DFL and NMS. The output is final.", "zh": "模型跳过 DFL 和 NMS，输出就是最终结果。"}}
+            ]
+          }
+        ],
+        "caption": {
+          "en": "The paper names YOLOv8 and YOLO11 as models with DFL. Table 1 of the paper says that YOLOv10 already had no NMS.",
+          "zh": "论文把 YOLOv8 和 YOLO11 列为使用 DFL 的模型。论文表 1 指出 YOLOv10 已经没有 NMS。"
+        }
+      }
+    },
+
+    {
+      "id": "training",
+      "title": {"en": "Change 2: three changes in training", "zh": "改动二：训练上的三项改动"},
+      "paras": [
+        {
+          "en": ["**STAL** means Small-Target-Aware Label Assignment.", "It gives priority to small objects when the model assigns true boxes to predictions."],
+          "zh": ["**STAL** 的意思是小目标感知的标签分配。", "模型把真实框分配给预测时，它优先照顾小物体。"]
+        },
+        {
+          "en": ["**ProgLoss** means Progressive Loss Balancing.", "It changes the weight of each loss part during training.", "The paper says that this change keeps the training stable."],
+          "zh": ["**ProgLoss** 的意思是渐进式损失平衡。", "它在训练过程中调整每一项损失的权重。", "论文称这一改动能让训练保持稳定。"]
+        },
+        {
+          "en": ["**MuSGD** is an optimizer that combines SGD and Muon.", "The paper says that Muon comes from ideas in LLM training.", "The paper says that MuSGD gives faster and more stable convergence."],
+          "zh": ["**MuSGD** 是一种结合了 SGD 与 Muon 的优化器。", "论文称 Muon 的思路来自 LLM 的训练方法。", "论文称 MuSGD 能带来更快、更稳定的收敛。"]
+        }
+      ],
+      "diagram": {
+        "title": {"en": "One training step with STAL, ProgLoss, and MuSGD", "zh": "包含 STAL、ProgLoss 和 MuSGD 的一次训练步骤"},
+        "desc": {
+          "en": "A training batch goes to the model. STAL assigns the true boxes. ProgLoss balances the loss. MuSGD updates the parameters. Then the loop repeats.",
+          "zh": "训练批次送入模型，STAL 分配真实框，ProgLoss 平衡损失，MuSGD 更新参数，然后循环重复。"
+        },
+        "rows": [["batch"], ["model"], ["assign"], ["loss"], ["opt"]],
+        "nodes": {
+          "batch":  {"label": {"en": "Training batch", "zh": "训练批次"}, "sub": {"en": "Images and true boxes", "zh": "图像与真实框"}},
+          "model":  {"label": {"en": "YOLO26 model", "zh": "YOLO26 模型"}, "sub": {"en": "Makes predictions", "zh": "做出预测"}, "style": "teal"},
+          "assign": {"label": {"en": "STAL", "zh": "STAL"}, "sub": {"en": "Small objects get priority", "zh": "小物体优先分配"}, "style": "amber"},
+          "loss":   {"label": {"en": "ProgLoss", "zh": "ProgLoss"}, "sub": {"en": "Balances the loss parts", "zh": "平衡各项损失的权重"}, "style": "amber"},
+          "opt":    {"label": {"en": "MuSGD", "zh": "MuSGD"}, "sub": {"en": "Updates the parameters", "zh": "更新参数"}, "style": "amber"}
+        },
+        "edges": [
+          ["batch", "model"], ["model", "assign"], ["assign", "loss"], ["loss", "opt"],
+          {"from": "opt", "to": "model", "loop": true, "label": {"en": "Repeat for each batch", "zh": "对每个批次重复"}}
+        ],
+        "scenarios": [
+          {
+            "id": "train",
+            "label": {"en": "Training step", "zh": "训练步骤"},
+            "steps": [
+              {"nodes": ["batch"], "edges": [], "caption": {"en": "The training batch has images and true boxes.", "zh": "训练批次包含图像和真实框。"}},
+              {"nodes": ["model"], "edges": [["batch", "model"]], "caption": {"en": "The model makes predictions for the images.", "zh": "模型为这些图像做出预测。"}},
+              {"nodes": ["assign"], "edges": [["model", "assign"]], "caption": {"en": "STAL assigns true boxes to predictions. Small objects get priority.", "zh": "STAL 把真实框分配给预测，小物体优先。"}},
+              {"nodes": ["loss"], "edges": [["assign", "loss"]], "caption": {"en": "ProgLoss calculates the loss and balances the loss parts.", "zh": "ProgLoss 计算损失并平衡各项损失。"}},
+              {"nodes": ["opt"], "edges": [["loss", "opt"]], "caption": {"en": "MuSGD uses the loss to change the parameters.", "zh": "MuSGD 用损失来修改参数。"}},
+              {"nodes": ["model"], "edges": [["opt", "model"]], "caption": {"en": "The training repeats with the next batch.", "zh": "训练带着下一个批次重复进行。"}}
+            ]
+          }
+        ],
+        "caption": {
+          "en": "The order of the steps is our simplification. The paper does not draw this order.",
+          "zh": "步骤的先后顺序是我们做的简化，论文并没有画出这个顺序。"
+        }
+      }
+    },
+
+    {
+      "id": "results-det",
+      "title": {"en": "Results for detection", "zh": "检测任务的结果"},
+      "paras": [
+        {
+          "en": ["The paper shows results for five model sizes.", "The sizes are n, s, m, l, and x.", "A larger size has more **parameters**."],
+          "zh": ["论文给出了五种模型规模的结果。", "这五种规模是 n、s、m、l 和 x。", "规模越大，**参数**越多。"]
+        },
+        {
+          "en": ["The accuracy score is **mAP**.", "On the COCO data, the mAP of YOLO26n is 40.9 and the mAP of YOLO26x is 57.5."],
+          "zh": ["精度指标是 **mAP**。", "在 COCO 数据上，YOLO26n 的 mAP 是 40.9，YOLO26x 的 mAP 是 57.5。"]
+        },
+        {
+          "en": ["The speed values show the **latency** for one image.", "On a T4 GPU with TensorRT, YOLO26n needs 1.7 ms and YOLO26x needs 11.8 ms.", "On a CPU with ONNX, YOLO26n needs 38.9 ms and YOLO26x needs 525.8 ms."],
+          "zh": ["速度数值表示处理一张图像的**延迟**。", "在使用 TensorRT 的 T4 GPU 上，YOLO26n 需要 1.7 毫秒，YOLO26x 需要 11.8 毫秒。", "在使用 ONNX 的 CPU 上，YOLO26n 需要 38.9 毫秒，YOLO26x 需要 525.8 毫秒。"]
+        },
+        {
+          "en": ["The table also gives an end-to-end (e2e) mAP.", "For every size, the e2e value is 0.6 to 0.8 points lower than the first mAP value."],
+          "zh": ["表中还给出了端到端（e2e）的 mAP。", "对每一种规模，e2e 数值都比第一列 mAP 低 0.6 到 0.8 个点。"]
+        }
+      ],
+      "chart": {
+        "title": {"en": "Detection results by model size", "zh": "按模型规模看检测结果"},
+        "source": "Table 2, detection part, arXiv v5 (COCO validation, 640 px)",
+        "metrics": [
+          {"id": "map", "label": {"en": "mAP 50–95", "zh": "mAP 50–95"}, "better": "high", "decimals": 1},
+          {"id": "e2e", "label": {"en": "mAP e2e", "zh": "mAP（端到端）"}, "better": "high", "decimals": 1},
+          {"id": "cpu", "label": {"en": "CPU ONNX", "zh": "CPU（ONNX）"}, "unit": "ms", "better": "low", "decimals": 1},
+          {"id": "t4", "label": {"en": "T4 TensorRT", "zh": "T4（TensorRT）"}, "unit": "ms", "better": "low", "decimals": 1},
+          {"id": "params", "label": {"en": "Parameters", "zh": "参数量"}, "unit": "M", "better": "low", "decimals": 1},
+          {"id": "flops", "label": {"en": "FLOPs", "zh": "FLOPs"}, "unit": "B", "better": "low", "decimals": 1}
+        ],
+        "items": [
+          {"label": "YOLO26n", "values": {"map": 40.9, "e2e": 40.1, "cpu": 38.9, "t4": 1.7, "params": 2.4, "flops": 5.4}},
+          {"label": "YOLO26s", "values": {"map": 48.6, "e2e": 47.8, "cpu": 87.2, "t4": 2.5, "params": 9.5, "flops": 20.7}},
+          {"label": "YOLO26m", "values": {"map": 53.1, "e2e": 52.5, "cpu": 220.0, "t4": 4.7, "params": 20.4, "flops": 68.2}},
+          {"label": "YOLO26l", "values": {"map": 55.0, "e2e": 54.4, "cpu": 286.2, "t4": 6.2, "params": 24.8, "flops": 86.4}},
+          {"label": "YOLO26x", "values": {"map": 57.5, "e2e": 56.9, "cpu": 525.8, "t4": 11.8, "params": 55.7, "flops": 193.9}}
+        ],
+        "note": {
+          "en": "The highlighted bar is the best value for the chosen metric.",
+          "zh": "高亮的柱子是所选指标下的最佳值。"
+        }
+      }
+    },
+
+    {
+      "id": "results-tasks",
+      "title": {"en": "Results for the five tasks", "zh": "五个任务的结果"},
+      "paras": [
+        {
+          "en": ["The paper gives a table for each of the five tasks.", "For every task, the accuracy rises from the n size to the x size."],
+          "zh": ["论文为五个任务各给出了一张表。", "对每个任务，精度都随规模从 n 到 x 逐步上升。"]
+        },
+        {
+          "en": ["The top-1 accuracy of classification rises from 71.4 to 79.9.", "The pose mAP rises from 57.2 to 71.6.", "The oriented detection mAP reaches 56.7 for the x size on the DOTA v1 data."],
+          "zh": ["分类的 top-1 精度从 71.4 升到 79.9。", "姿态估计的 mAP 从 57.2 升到 71.6。", "旋转框检测在 DOTA v1 数据上，x 规模的 mAP 达到 56.7。"]
+        },
+        {
+          "en": ["The tasks use different data and different metrics.", "Do not compare the scores of two tasks with each other."],
+          "zh": ["各个任务使用不同的数据和不同的指标。", "不要把两个任务的分数直接相比。"]
+        }
+      ],
+      "chart": {
+        "title": {"en": "Accuracy by task and model size", "zh": "按任务和规模看精度"},
+        "source": "Tables 2 to 5, arXiv v5 (end-to-end scores; classification is top-1 on ImageNet)",
+        "metrics": [
+          {"id": "det", "label": {"en": "Detection", "zh": "检测"}, "better": "high", "decimals": 1},
+          {"id": "seg", "label": {"en": "Segmentation (mask)", "zh": "实例分割（掩码）"}, "better": "high", "decimals": 1},
+          {"id": "pose", "label": {"en": "Pose", "zh": "姿态"}, "better": "high", "decimals": 1},
+          {"id": "obb", "label": {"en": "Oriented", "zh": "旋转框"}, "better": "high", "decimals": 1},
+          {"id": "cls", "label": {"en": "Classification", "zh": "分类"}, "unit": "%", "better": "high", "decimals": 1}
+        ],
+        "items": [
+          {"label": "n", "values": {"det": 40.1, "seg": 33.9, "pose": 57.2, "obb": 52.4, "cls": 71.4}},
+          {"label": "s", "values": {"det": 47.8, "seg": 40.0, "pose": 63.0, "obb": 54.8, "cls": 76.0}},
+          {"label": "m", "values": {"det": 52.5, "seg": 44.1, "pose": 68.8, "obb": 55.3, "cls": 78.1}},
+          {"label": "l", "values": {"det": 54.4, "seg": 45.5, "pose": 70.4, "obb": 56.2, "cls": 79.0}},
+          {"label": "x", "values": {"det": 56.9, "seg": 47.0, "pose": 71.6, "obb": 56.7, "cls": 79.9}}
+        ],
+        "note": {
+          "en": "Detection, segmentation, and pose use COCO. Oriented detection uses DOTA v1.",
+          "zh": "检测、分割和姿态使用 COCO 数据，旋转框检测使用 DOTA v1 数据。"
+        }
+      }
+    },
+
+    {
+      "id": "deploy",
+      "title": {"en": "Export and quantization", "zh": "导出与量化"},
+      "paras": [
+        {
+          "en": ["A trained YOLO26 model can use several **export formats**.", "The paper names ONNX, TensorRT, CoreML, TFLite, and OpenVINO."],
+          "zh": ["训练好的 YOLO26 模型可以导出为多种**导出格式**。", "论文提到 ONNX、TensorRT、CoreML、TFLite 和 OpenVINO。"]
+        },
+        {
+          "en": ["**Quantization** stores the numbers of a model with fewer bits.", "The paper says that YOLO26 keeps stable accuracy with FP16 and INT8.", "The paper gives this statement without a table of quantized results."],
+          "zh": ["**量化**用更少的比特来存储模型中的数字。", "论文称 YOLO26 在 FP16 和 INT8 下保持稳定的精度。", "论文给出这一说法时，没有附上量化结果的表格。"]
+        }
+      ]
+    },
+
+    {
+      "id": "limits",
+      "title": {"en": "What to check before you trust the numbers", "zh": "采信数字之前要核对什么"},
+      "paras": [
+        {
+          "en": ["The caption of Table 2 calls the numbers Ultralytics YOLO26 performance metrics.", "The paper does not describe the measurement setup in detail."],
+          "zh": ["表 2 的标题把这些数字称为 Ultralytics YOLO26 的性能指标。", "论文没有详细描述测量的设置。"]
+        },
+        {
+          "en": ["The paper has no ablation table for DFL removal, ProgLoss, STAL, or MuSGD.", "An ablation table shows the effect of one change at a time.", "So the tables cannot show which change gives which gain."],
+          "zh": ["论文没有针对去掉 DFL、ProgLoss、STAL 或 MuSGD 的消融表。", "消融表一次只展示一项改动的效果。", "因此这些表格无法说明哪项改动带来了哪部分提升。"]
+        },
+        {
+          "en": ["The text says that CPU inference is up to 43% faster for the nano model.", "Table 2 lists only YOLO26 models.", "So a reader cannot check the 43% figure from the tables."],
+          "zh": ["正文称 nano 模型的 CPU 推理最多快 43%。", "表 2 只列出了 YOLO26 模型。", "所以读者无法用这些表格核对 43% 这个数字。"]
+        },
+        {
+          "en": ["Table 1 says that YOLOv10 already removed NMS with dual assignment.", "Section 2.2 says that YOLO26 is the first YOLO release to adopt this paradigm while it keeps the balance of speed and accuracy.", "The reader must decide how the two statements fit together."],
+          "zh": ["表 1 称 YOLOv10 已经通过双重分配去掉了 NMS。", "第 2.2 节称 YOLO26 是第一个采用这一范式、同时保持速度与精度平衡的 YOLO 版本。", "读者需要自己判断这两种说法如何协调。"]
+        },
+        {
+          "en": ["The abstract says that the paper benchmarks YOLO26 on Jetson Nano and Orin.", "The result tables in version 5 show a CPU and a T4 GPU only."],
+          "zh": ["摘要称论文在 Jetson Nano 和 Orin 上测试了 YOLO26。", "第 5 版的结果表格只给出了 CPU 和 T4 GPU 的数据。"]
+        },
+        {
+          "en": ["The numbers in the text can change between versions.", "Version 1 says that YOLO26-m and YOLO26-l reach an mAP above 51% and 53%.", "Version 5 says above 53% and 55%."],
+          "zh": ["正文中的数字在不同版本之间可能变化。", "第 1 版称 YOLO26-m 和 YOLO26-l 的 mAP 分别超过 51% 和 53%。", "第 5 版则称分别超过 53% 和 55%。"]
+        }
+      ]
+    }
+  ],
+
+  "figures": {
+    "title": {"en": "Core figures and tables explained", "zh": "核心图表解读"},
+    "intro": {
+      "en": "Five figures and tables carry the main claims of the paper. Each card redraws one of them and explains it in plain words.",
+      "zh": "论文的主要论断靠五张图表支撑。每张卡片重绘其中一张，并用通俗的话解释。"
+    },
+    "cards": [
+      {
+        "id": "fig1",
+        "label": {"en": "Figure 1", "zh": "图 1"},
+        "title": {"en": "Accuracy against speed", "zh": "精度与速度的关系"},
+        "original": {
+          "en": ["Figure 1 plots COCO mAP against latency.", "The latency is for an NVIDIA T4 GPU with TensorRT and FP16.", "Part (a) compares YOLO26 with earlier YOLO versions and other real-time detectors.", "Part (b) compares YOLO26 with YOLOv10 and RT-DETR models."],
+          "zh": ["图 1 画的是 COCO 上的 mAP 与延迟的关系。", "延迟是在 NVIDIA T4 GPU 上用 TensorRT 和 FP16 测得的。", "图 (a) 把 YOLO26 与早期 YOLO 版本和其他实时检测器相比。", "图 (b) 把 YOLO26 与 YOLOv10 和 RT-DETR 系列模型相比。"]
+        },
+        "plain": {
+          "read": {
+            "en": ["Each dot is one model size.", "The horizontal axis is the time for one image. A dot on the left is faster.", "The vertical axis is the accuracy. A dot at the top is more accurate.", "The best place is the top-left corner."],
+            "zh": ["每个点是一种模型规模。", "横轴是处理一张图像的时间，点越靠左越快。", "纵轴是精度，点越靠上越准。", "最理想的位置是左上角。"]
+          },
+          "meaning": {
+            "en": ["The dots rise from the left to the right.", "A larger model is more accurate, but it needs more time.", "From n to x, the mAP rises by 16.6 points and the time grows from 1.7 ms to 11.8 ms."],
+            "zh": ["点从左向右逐渐升高。", "更大的模型更准，但需要更多时间。", "从 n 到 x，mAP 提高 16.6 个点，耗时从 1.7 毫秒增加到 11.8 毫秒。"]
+          },
+          "caution": {
+            "en": ["The original figure also shows other models.", "The text does not give their values, so this redraw shows only YOLO26.", "The caption says that the figure shows an improved trade-off for YOLO26.", "The reader must look at the original figure to check this claim."],
+            "zh": ["原图里还画了其他模型。", "正文没有给出它们的数值，所以我们的重绘只画了 YOLO26。", "图注称这张图显示了 YOLO26 更好的权衡。", "读者需要查看原图，才能核对这一说法。"]
+          }
+        },
+        "analogy": {"zh": "可以把它想成点外卖：精度像菜的味道，延迟像等餐的时间。你希望味道好、出餐又快，也就是图里的左上角。模型越大，味道越好，但要等得更久。"},
+        "redraw_note": {
+          "en": "The dots use the YOLO26 values from Table 2 (T4, TensorRT 10, FP16). The original figure may show the same models in a different way.",
+          "zh": "这些点使用表 2 中 YOLO26 的数值（T4、TensorRT 10、FP16）。原图呈现同样的模型时，画法可能不同。"
+        },
+        "redraw": {
+          "type": "scatter",
+          "source": "Table 2, detection part, arXiv v5 (T4, TensorRT 10, FP16, COCO validation)",
+          "x": {"label": {"en": "Latency", "zh": "延迟"}, "unit": "ms", "better": "low", "decimals": 1},
+          "y": {"label": {"en": "COCO mAP 50–95", "zh": "COCO mAP 50–95"}, "better": "high", "decimals": 1},
+          "better": "top-left",
+          "points": [
+            {"label": "n", "x": 1.7, "y": 40.9},
+            {"label": "s", "x": 2.5, "y": 48.6},
+            {"label": "m", "x": 4.7, "y": 53.1},
+            {"label": "l", "x": 6.2, "y": 55.0},
+            {"label": "x", "x": 11.8, "y": 57.5}
+          ]
+        }
+      },
+
+      {
+        "id": "tab1",
+        "label": {"en": "Table 1", "zh": "表 1"},
+        "title": {"en": "The YOLO family in a timeline", "zh": "YOLO 家族的时间线"},
+        "original": {
+          "en": ["Table 1 lists the YOLO models from YOLOv1 to YOLOv13, and YOLO26.", "Each row gives the year, the main new idea, the tasks, and the framework."],
+          "zh": ["表 1 列出了从 YOLOv1 到 YOLOv13 以及 YOLO26 的各个模型。", "每一行给出年份、主要的新想法、任务和框架。"]
+        },
+        "plain": {
+          "read": {
+            "en": ["Read the list from top to bottom.", "Each entry is one YOLO model.", "The text says what is new in that model.", "The amber dot marks YOLO26. The teal dot marks YOLOv10."],
+            "zh": ["从上往下读这份列表。", "每一条是一个 YOLO 模型。", "文字说明该模型的新东西是什么。", "琥珀色圆点标记 YOLO26，青色圆点标记 YOLOv10。"]
+          },
+          "meaning": {
+            "en": ["Most entries add or change a part of the network.", "YOLOv10 and YOLO26 change a different part: the step after the head.", "So YOLO26 continues a move to remove NMS."],
+            "zh": ["大多数条目是在网络里增加或修改某个部分。", "YOLOv10 和 YOLO26 改的是另一处：检测头之后的那一步。", "所以 YOLO26 是在延续去掉 NMS 的方向。"]
+          },
+          "caution": {
+            "en": ["We list 9 of the 14 rows of the table.", "The table names the last model YOLOv26, but the text says YOLO26.", "Table 1 says that YOLOv10 already removed NMS, but section 2.2 calls YOLO26 the first YOLO release with this paradigm."],
+            "zh": ["我们只列出了表中 14 行里的 9 行。", "表中把最后一个模型写成 YOLOv26，而正文写的是 YOLO26。", "表 1 称 YOLOv10 已经去掉了 NMS，但第 2.2 节称 YOLO26 是第一个采用这一范式的 YOLO 版本。"]
+          }
+        },
+        "analogy": {"zh": "可以把它想成一款车的改款史：每一代都在换发动机、换底盘。到了 YOLOv10 和 YOLO26，改的已经不是发动机，而是把出厂前的人工质检（NMS）取消了。"},
+        "redraw_note": {
+          "en": "The years are the years that Table 1 prints.",
+          "zh": "年份沿用表 1 中印出的年份。"
+        },
+        "redraw": {
+          "type": "timeline",
+          "source": "Table 1, arXiv v5 (9 of 14 rows)",
+          "items": [
+            {"year": "2015", "name": "YOLOv1", "text": {"en": ["YOLOv1 is the first single-stage detector with one network for boxes and classes."], "zh": ["YOLOv1 是第一个单阶段检测器，用一个网络同时给出框和类别。"]}},
+            {"year": "2018", "name": "YOLOv3", "text": {"en": ["YOLOv3 has a deeper Darknet-53 backbone and merges features of many scales."], "zh": ["YOLOv3 使用更深的 Darknet-53 主干，并融合多个尺度的特征。"]}},
+            {"year": "2020", "name": "YOLOv5", "text": {"en": ["Ultralytics makes YOLOv5 in PyTorch."], "zh": ["Ultralytics 用 PyTorch 实现了 YOLOv5。"]}},
+            {"year": "2023", "name": "YOLOv8", "text": {"en": ["YOLOv8 has a new C2f backbone, a decoupled head, and no anchors."], "zh": ["YOLOv8 有新的 C2f 主干、解耦检测头，并且不使用锚框。"]}},
+            {"year": "2024", "name": "YOLOv10", "mark": "ref", "text": {"en": ["YOLOv10 removes NMS with a dual-assignment training method."], "zh": ["YOLOv10 用双重分配的训练方法去掉了 NMS。"]}},
+            {"year": "2024", "name": "YOLO11", "text": {"en": ["YOLO11 adds C3k2 blocks and the C2PSA module, and it supports pose and oriented detection."], "zh": ["YOLO11 增加了 C3k2 模块和 C2PSA 模块，并支持姿态估计和旋转框检测。"]}},
+            {"year": "2025", "name": "YOLOv12", "text": {"en": ["YOLOv12 adds an area attention module."], "zh": ["YOLOv12 增加了区域注意力模块。"]}},
+            {"year": "2025", "name": "YOLOv13", "text": {"en": ["YOLOv13 adds the HyperACE module."], "zh": ["YOLOv13 增加了 HyperACE 模块。"]}},
+            {"year": "2025", "name": "YOLO26", "mark": "new", "text": {"en": ["YOLO26 has no NMS and no DFL, and it uses the MuSGD optimizer."], "zh": ["YOLO26 没有 NMS 也没有 DFL，并使用 MuSGD 优化器。"]}}
+          ]
+        }
+      },
+
+      {
+        "id": "fig3",
+        "label": {"en": "Figure 3", "zh": "图 3"},
+        "title": {"en": "The core architecture", "zh": "核心架构"},
+        "original": {
+          "en": ["Figure 3 shows the core architecture of YOLO26.", "The text describes the pipeline with the help of this figure.", "The pipeline starts with an image and ends with boxes and classes.", "The text also puts ProgLoss, STAL, MuSGD, and quantization in the description."],
+          "zh": ["图 3 展示了 YOLO26 的核心架构。", "正文借助这张图来描述整个流程。", "流程从一张图像开始，到框和类别结束。", "正文的描述里还包含 ProgLoss、STAL、MuSGD 和量化。"]
+        },
+        "plain": {
+          "read": {
+            "en": ["Read the diagram from top to bottom.", "The image enters at the top.", "Press the Training time switch to see the other path.", "The amber boxes are parts of training."],
+            "zh": ["从上往下读这张图。", "图像从最上面进入。", "点击「训练时」开关，可以看到另一条路径。", "琥珀色的方框是训练用的部分。"]
+          },
+          "meaning": {
+            "en": ["At run time, the image goes through the backbone, the neck, and the head.", "The head gives the boxes directly, so the pipeline has no NMS step.", "ProgLoss, STAL, and MuSGD are training methods.", "They change the model during training. They are not steps of the run-time path."],
+            "zh": ["运行时，图像依次经过主干网络、颈部和检测头。", "检测头直接给出框，所以流程里没有 NMS 步骤。", "ProgLoss、STAL 和 MuSGD 是训练方法。", "它们在训练时改变模型，并不是运行路径上的步骤。"]
+          },
+          "caution": {
+            "en": ["The text puts the training parts and the run-time parts in one description.", "We split them into two paths to make the diagram clear.", "The paper does not draw the two paths in this way."],
+            "zh": ["正文把训练部分和运行部分放在同一段描述里。", "为了让图更清楚，我们把它们拆成了两条路径。", "论文并没有这样画出两条路径。"]
+          }
+        },
+        "analogy": {"zh": "可以把它想成一家餐厅：运行时是「点单、后厨、出菜」的日常流程；训练时则是「厨师培训」。培训用的教材（STAL、ProgLoss）和训练方法（MuSGD）只在培训阶段用到，日常出菜时并不出现。"},
+        "redraw_note": {
+          "en": "We redraw the pipeline from the text. We did not copy the figure.",
+          "zh": "我们依据正文重绘了这条流程，没有复制原图。"
+        },
+        "redraw": {
+          "type": "diagram",
+          "diagram": {
+            "title": {"en": "The core architecture in two paths", "zh": "分成两条路径的核心架构"},
+            "desc": {
+              "en": "At run time, an image goes through the backbone, the neck, and the head, then quantization, and gives boxes and classes. At training time, the head output goes to STAL, ProgLoss, and MuSGD, which update the model.",
+              "zh": "运行时，图像经过主干网络、颈部和检测头，再经量化，输出框和类别。训练时，检测头的输出进入 STAL、ProgLoss 和 MuSGD，用来更新模型。"
+            },
+            "rows": [["in"], ["bb"], ["neck"], ["head"], ["loss", "opt"], ["quant"], ["out"]],
+            "nodes": {
+              "in":    {"label": {"en": "Input and preprocessing", "zh": "输入与预处理"}},
+              "bb":    {"label": {"en": "Backbone", "zh": "主干网络"}, "sub": {"en": "Multi-scale feature maps", "zh": "多尺度特征图"}, "style": "teal"},
+              "neck":  {"label": {"en": "Neck", "zh": "颈部"}, "sub": {"en": "Lightweight fusion", "zh": "轻量级融合"}, "style": "teal"},
+              "head":  {"label": {"en": "Direct regression head", "zh": "直接回归检测头"}, "sub": {"en": "No NMS", "zh": "无 NMS"}, "style": "teal"},
+              "loss":  {"label": {"en": "ProgLoss, STAL", "zh": "ProgLoss、STAL"}, "sub": {"en": "Training", "zh": "训练时"}, "style": "amber"},
+              "opt":   {"label": {"en": "MuSGD", "zh": "MuSGD"}, "sub": {"en": "Training", "zh": "训练时"}, "style": "amber"},
+              "quant": {"label": {"en": "Quantization", "zh": "量化"}, "sub": {"en": "FP16 or INT8", "zh": "FP16 或 INT8"}, "style": "dash"},
+              "out":   {"label": {"en": "Boxes and classes", "zh": "框和类别"}}
+            },
+            "edges": [
+              ["in", "bb"], ["bb", "neck"], ["neck", "head"], ["head", "loss"], ["loss", "opt"],
+              {"from": "opt", "to": "bb", "loop": true, "label": {"en": "Update the model", "zh": "更新模型"}},
+              ["head", "quant"], ["quant", "out"]
+            ],
+            "scenarios": [
+              {
+                "id": "run",
+                "label": {"en": "Run time", "zh": "运行时"},
+                "steps": [
+                  {"nodes": ["in"], "edges": [], "caption": {"en": "The model receives the image and prepares it.", "zh": "模型接收图像并做预处理。"}},
+                  {"nodes": ["bb"], "edges": [["in", "bb"]], "caption": {"en": "The backbone makes feature maps at many scales.", "zh": "主干网络生成多个尺度的特征图。"}},
+                  {"nodes": ["neck"], "edges": [["bb", "neck"]], "caption": {"en": "The neck merges the feature maps.", "zh": "颈部融合这些特征图。"}},
+                  {"nodes": ["head"], "edges": [["neck", "head"]], "caption": {"en": "The head predicts the boxes and the classes directly.", "zh": "检测头直接预测框和类别。"}},
+                  {"nodes": ["quant"], "edges": [["head", "quant"]], "caption": {"en": "Quantization stores the numbers of the model with fewer bits. The paper says that this helps small devices.", "zh": "量化用更少的比特存储模型中的数字。论文称这对小型设备有帮助。"}},
+                  {"nodes": ["out"], "edges": [["quant", "out"]], "caption": {"en": "The model gives the boxes and the classes.", "zh": "模型给出框和类别。"}}
+                ]
+              },
+              {
+                "id": "train",
+                "label": {"en": "Training time", "zh": "训练时"},
+                "steps": [
+                  {"nodes": ["in"], "edges": [], "caption": {"en": "The training starts with an image.", "zh": "训练从一张图像开始。"}},
+                  {"nodes": ["bb"], "edges": [["in", "bb"]], "caption": {"en": "The backbone makes the feature maps.", "zh": "主干网络生成特征图。"}},
+                  {"nodes": ["neck"], "edges": [["bb", "neck"]], "caption": {"en": "The neck merges the feature maps.", "zh": "颈部融合特征图。"}},
+                  {"nodes": ["head"], "edges": [["neck", "head"]], "caption": {"en": "The head makes predictions.", "zh": "检测头做出预测。"}},
+                  {"nodes": ["loss"], "edges": [["head", "loss"]], "caption": {"en": "STAL assigns the true boxes. ProgLoss balances the loss.", "zh": "STAL 分配真实框，ProgLoss 平衡损失。"}},
+                  {"nodes": ["opt"], "edges": [["loss", "opt"]], "caption": {"en": "MuSGD changes the parameters.", "zh": "MuSGD 修改参数。"}},
+                  {"nodes": ["bb"], "edges": [["opt", "bb"]], "caption": {"en": "The model uses the new parameters in the next step.", "zh": "模型在下一步使用新的参数。"}}
+                ]
+              }
+            ],
+            "caption": {
+              "en": "The text describes this pipeline with Figure 3. We split it into two paths.",
+              "zh": "正文借助图 3 描述这条流程。我们把它拆成了两条路径。"
+            }
+          }
+        }
+      },
+
+      {
+        "id": "fig4",
+        "label": {"en": "Figure 4", "zh": "图 4"},
+        "title": {"en": "The four main changes", "zh": "四项主要改动"},
+        "original": {
+          "en": ["Figure 4 has four parts, (a) to (d).", "Each part shows one design change of YOLO26."],
+          "zh": ["图 4 有四个部分，(a) 到 (d)。", "每个部分展示 YOLO26 的一项设计改动。"]
+        },
+        "plain": {
+          "read": {
+            "en": ["Each box is one change.", "The tag shows the part of the figure: (a), (b), (c), or (d).", "The badge shows how much evidence the paper gives."],
+            "zh": ["每个方框是一项改动。", "标签表示它对应图中的哪一部分：(a)、(b)、(c) 或 (d)。", "徽标表示论文给出了多少证据。"]
+          },
+          "meaning": {
+            "en": ["The four changes aim at simple deployment and steady training.", "Two changes remove a part of the model.", "Two changes improve the training."],
+            "zh": ["这四项改动的目标是部署简单、训练稳定。", "有两项改动是去掉模型的一个部分。", "有两项改动是改进训练。"]
+          },
+          "caution": {
+            "en": ["No table shows the effect of one change alone.", "So most badges say that the paper only claims the effect.", "Read these four parts as the claims of the paper."],
+            "zh": ["没有任何表格单独展示某一项改动的效果。", "所以大多数徽标显示的是论文只给出了说法。", "请把这四个部分当作论文的主张来读。"]
+          }
+        },
+        "analogy": {"zh": "这四个方框像装修方案的效果图：效果图很好看，但装修前后的对比数据（消融实验）论文没有给。读图时要分清「论文说了什么」和「论文证明了什么」。"},
+        "redraw_note": {
+          "en": "We redraw the four parts as boxes and add an evidence badge to each box. The badge is our reading of the paper.",
+          "zh": "我们把四个部分重绘成方框，并给每个方框加了证据徽标。徽标是我们对论文的判断。"
+        },
+        "redraw": {
+          "type": "panels",
+          "items": [
+            {
+              "tag": "(a)", "title": {"en": "Remove DFL", "zh": "去掉 DFL"},
+              "claim": {"en": ["The paper says that removing DFL streamlines box regression.", "It also says that export becomes easier."], "zh": ["论文称去掉 DFL 能简化框回归。", "它还称导出变得更容易。"]},
+              "plain": {"en": ["Before, the model predicted a distribution for each box edge.", "Now it predicts the box directly."], "zh": ["以前，模型为框的每条边预测一个分布。", "现在它直接预测框。"]},
+              "evidence": {"level": "claim", "note": {"en": "The text gives no table for this change alone.", "zh": "正文没有单独针对这项改动的表格。"}}
+            },
+            {
+              "tag": "(b)", "title": {"en": "No NMS at inference", "zh": "推理时没有 NMS"},
+              "claim": {"en": ["The paper says that the model gives final boxes without NMS.", "It says that this removes a delay after the head."], "zh": ["论文称模型不用 NMS 就能给出最终的框。", "它称这样去掉了检测头之后的一段延迟。"]},
+              "plain": {"en": ["Before, a filter removed duplicate boxes.", "Now the model does not make duplicate boxes."], "zh": ["以前，要靠一个过滤步骤删掉重复的框。", "现在模型不再产生重复的框。"]},
+              "evidence": {"level": "partial", "note": {"en": "Table 2 gives e2e scores for YOLO26. No table compares it with a model that uses NMS.", "zh": "表 2 给出了 YOLO26 的端到端分数，但没有表格把它与使用 NMS 的模型相比。"}}
+            },
+            {
+              "tag": "(c)", "title": {"en": "ProgLoss and STAL", "zh": "ProgLoss 与 STAL"},
+              "claim": {"en": ["The paper says that they make the training more stable.", "It says that they improve small-object detection."], "zh": ["论文称它们让训练更稳定。", "它称它们提升了小目标检测。"]},
+              "plain": {"en": ["ProgLoss changes the loss weights during training.", "STAL gives small objects more priority."], "zh": ["ProgLoss 在训练中调整损失的权重。", "STAL 让小物体得到更高的优先级。"]},
+              "evidence": {"level": "claim", "note": {"en": "The text gives no ablation table and no small-object table.", "zh": "正文没有消融表，也没有小目标专项表格。"}}
+            },
+            {
+              "tag": "(d)", "title": {"en": "MuSGD optimizer", "zh": "MuSGD 优化器"},
+              "claim": {"en": ["The paper says that MuSGD gives faster and more stable convergence."], "zh": ["论文称 MuSGD 带来更快、更稳定的收敛。"]},
+              "plain": {"en": ["MuSGD is a new rule for changing the parameters.", "It mixes SGD with Muon."], "zh": ["MuSGD 是修改参数的一种新规则。", "它把 SGD 和 Muon 结合起来。"]},
+              "evidence": {"level": "claim", "note": {"en": "The text gives no training curve and no table of epochs.", "zh": "正文没有训练曲线，也没有训练轮数的表格。"}}
+            }
+          ]
+        }
+      },
+
+      {
+        "id": "tab2",
+        "label": {"en": "Table 2", "zh": "表 2"},
+        "title": {"en": "Detection results by model size", "zh": "按模型规模看检测结果"},
+        "original": {
+          "en": ["Table 2 lists the results for the detection models and the segmentation models.", "It gives the accuracy, the speed on a CPU and on a T4 GPU, the size, and the calculation.", "The caption calls the numbers Ultralytics YOLO26 performance metrics."],
+          "zh": ["表 2 列出了检测模型和分割模型的结果。", "它给出精度、在 CPU 和 T4 GPU 上的速度、模型大小和计算量。", "表的标题把这些数字称为 Ultralytics YOLO26 的性能指标。"]
+        },
+        "plain": {
+          "read": {
+            "en": ["Each row is one model size.", "In the first two columns, a higher value is better.", "In the next two columns, a lower time is better.", "In the last two columns, a lower value means a smaller model."],
+            "zh": ["每一行是一种模型规模。", "前两列数值越高越好。", "接下来两列是时间，越低越好。", "最后两列数值越低，说明模型越小。"]
+          },
+          "meaning": {
+            "en": ["The x model has the highest mAP, 57.5, and the longest times.", "The n model has the shortest times, and it has only 2.4 million parameters.", "The s model has an mAP of 48.6 and needs 2.5 ms on the T4 GPU."],
+            "zh": ["x 模型的 mAP 最高，为 57.5，但耗时也最长。", "n 模型耗时最短，参数量只有 240 万。", "s 模型的 mAP 是 48.6，在 T4 GPU 上需要 2.5 毫秒。"]
+          },
+          "caution": {
+            "en": ["The table gives two accuracy scores.", "Do not mix them in one comparison.", "The table lists only YOLO26 models.", "So it cannot show that YOLO26 is better than other models."],
+            "zh": ["表里有两列精度分数。", "不要在同一次比较里混用它们。", "表里只有 YOLO26 的模型。", "所以它无法说明 YOLO26 比其他模型更好。"]
+          }
+        },
+        "analogy": {"zh": "可以把它当成手机参数表：n 像入门款，x 像旗舰款。旗舰款成绩最好，但更慢、更「重」。该选哪一款，取决于你的设备能承受多少计算。"},
+        "redraw_note": {
+          "en": "This is the detection part of Table 2. The bold cell in each column is the best value.",
+          "zh": "这是表 2 的检测部分。每一列中高亮的格子是最佳值。"
+        },
+        "redraw": {
+          "type": "datatable",
+          "source": "Table 2, detection part, arXiv v5 (COCO validation, 640 px)",
+          "columns": [
+            {"id": "map", "label": {"en": "mAP 50–95", "zh": "mAP 50–95"}, "better": "high", "decimals": 1},
+            {"id": "e2e", "label": {"en": "mAP e2e", "zh": "mAP（端到端）"}, "better": "high", "decimals": 1},
+            {"id": "cpu", "label": {"en": "CPU ONNX", "zh": "CPU（ONNX）"}, "unit": "ms", "better": "low", "decimals": 1},
+            {"id": "t4", "label": {"en": "T4 TensorRT", "zh": "T4（TensorRT）"}, "unit": "ms", "better": "low", "decimals": 1},
+            {"id": "params", "label": {"en": "Params", "zh": "参数量"}, "unit": "M", "better": "low", "decimals": 1},
+            {"id": "flops", "label": {"en": "FLOPs", "zh": "FLOPs"}, "unit": "B", "better": "low", "decimals": 1}
+          ],
+          "rows": [
+            {"label": "YOLO26n", "values": {"map": 40.9, "e2e": 40.1, "cpu": 38.9, "t4": 1.7, "params": 2.4, "flops": 5.4}},
+            {"label": "YOLO26s", "values": {"map": 48.6, "e2e": 47.8, "cpu": 87.2, "t4": 2.5, "params": 9.5, "flops": 20.7}},
+            {"label": "YOLO26m", "values": {"map": 53.1, "e2e": 52.5, "cpu": 220.0, "t4": 4.7, "params": 20.4, "flops": 68.2}},
+            {"label": "YOLO26l", "values": {"map": 55.0, "e2e": 54.4, "cpu": 286.2, "t4": 6.2, "params": 24.8, "flops": 86.4}},
+            {"label": "YOLO26x", "values": {"map": 57.5, "e2e": 56.9, "cpu": 525.8, "t4": 11.8, "params": 55.7, "flops": 193.9}}
+          ]
+        }
+      }
+    ]
+  },
+
+  "tables": [
+    {
+      "kind": "glossary",
+      "title": {"en": "Key terms", "zh": "关键术语"},
+      "rows": [
+        {"term": {"en": "object detection", "zh": "目标检测"}, "aliases": ["object detector"], "def": ["Object detection finds objects in an image.", "It gives a box and a class for each object."], "note": "在图像中找出物体，并为每个物体给出位置框和类别。"},
+        {"term": {"en": "YOLO", "zh": "YOLO"}, "def": ["YOLO is a family of fast detectors.", "A YOLO model finds all objects in one pass through the network."], "note": "You Only Look Once。一类单阶段检测器，一次前向计算就得到全部检测结果。"},
+        {"term": {"en": "bounding box", "zh": "边界框"}, "def": ["A bounding box is a rectangle around an object."], "note": "围住物体的矩形，用来表示物体的位置。"},
+        {"term": {"en": "backbone, neck, head", "zh": "主干、颈部、检测头"}, "aliases": ["backbone", "neck", "head"], "def": ["The backbone finds features in the image.", "The neck merges features of different scales.", "The head gives the boxes and the classes."], "note": "检测网络的三个部分：提取特征、融合多尺度特征、输出结果。"},
+        {"term": {"en": "NMS", "zh": "非极大值抑制"}, "def": ["Non-maximum suppression (NMS) removes duplicate boxes.", "It keeps the box with the highest confidence score for each object."], "note": "检测后的一个后处理步骤，用来去掉同一物体上的重复框。"},
+        {"term": {"en": "IoU threshold", "zh": "IoU 阈值"}, "def": ["IoU measures how much two boxes overlap.", "NMS uses an IoU threshold to decide if two boxes show the same object."], "note": "IoU 是交并比。NMS 用阈值判断两个框是否指向同一个物体，这个阈值需要人工调节。"},
+        {"term": {"en": "DFL", "zh": "分布焦点损失"}, "def": ["Distribution Focal Loss (DFL) lets a model predict a probability distribution for the box coordinates.", "YOLOv8 and YOLO11 use it."], "note": "让模型为框坐标预测概率分布的做法。论文称它让导出变复杂，YOLO26 将其移除。"},
+        {"term": {"en": "end-to-end inference", "zh": "端到端推理"}, "def": ["In end-to-end inference, the model gives the final boxes directly.", "It does not need NMS."], "note": "模型直接给出最终检测结果，不需要 NMS 等后处理。也称 NMS-free。"},
+        {"term": {"en": "label assignment", "zh": "标签分配"}, "def": ["Label assignment decides which prediction learns from which true box during training."], "note": "训练时决定每个预测与哪个真实框配对、向哪个真实框学习。"},
+        {"term": {"en": "STAL", "zh": "小目标感知标签分配"}, "def": ["STAL means Small-Target-Aware Label Assignment.", "It gives priority to small objects."], "note": "论文提出的分配策略，让小物体在分配时优先得到真实框。"},
+        {"term": {"en": "ProgLoss", "zh": "渐进式损失平衡"}, "def": ["ProgLoss means Progressive Loss Balancing.", "It changes the weight of each loss part during training."], "note": "训练中动态调整各项损失的权重，论文称可保持训练稳定。"},
+        {"term": {"en": "optimizer", "zh": "优化器"}, "def": ["An optimizer is the rule that changes the parameters during training."], "note": "训练时根据损失修改参数的规则，例如 SGD。"},
+        {"term": {"en": "MuSGD", "zh": "MuSGD"}, "def": ["MuSGD is an optimizer that combines SGD and Muon."], "note": "论文提出的优化器，结合了 SGD 与 Muon，思路借鉴自 LLM 训练。"},
+        {"term": {"en": "mAP", "zh": "平均精度均值"}, "def": ["Mean average precision (mAP) is a score for detection accuracy.", "A higher value is better."], "note": "衡量检测精度的常用指标。mAP 50–95 是在多个 IoU 阈值上取平均。"},
+        {"term": {"en": "latency", "zh": "延迟"}, "def": ["Latency is the time that the model needs for one image.", "A lower value is better."], "note": "处理一张图像所用的时间，单位是毫秒。"},
+        {"term": {"en": "parameters and FLOPs", "zh": "参数量与 FLOPs"}, "aliases": ["parameters", "parameter"], "def": ["Parameters are the numbers inside the model.", "FLOPs count the calculations for one image."], "note": "参数量表示模型大小，FLOPs 表示处理一张图像所需的计算量。"},
+        {"term": {"en": "quantization", "zh": "量化"}, "def": ["Quantization stores the numbers of a model with fewer bits.", "FP16 and INT8 are two examples."], "note": "用更低的位数存储数字以减小模型、加快推理，例如 FP16 和 INT8。"},
+        {"term": {"en": "export format", "zh": "导出格式"}, "aliases": ["export formats"], "def": ["An export format is a file type for a trained model.", "ONNX and TFLite are examples."], "note": "训练好的模型保存成的文件类型，不同格式适配不同的硬件和软件。"},
+        {"term": {"en": "edge device", "zh": "边缘设备"}, "def": ["An edge device is a small computer near the data source.", "A drone and a smart camera are examples."], "note": "靠近数据来源的小型设备，算力、内存和电量都有限。"}
+      ]
+    },
+    {
+      "kind": "compare",
+      "title": {"en": "Earlier models and YOLO26", "zh": "早期模型与 YOLO26 对比"},
+      "cols": [
+        {"en": "Earlier models", "zh": "早期模型"},
+        {"en": "YOLO26", "zh": "YOLO26"}
+      ],
+      "rows": [
+        {"item": {"en": "Post-processing", "zh": "后处理"}, "cells": [["The model needs NMS to remove duplicate boxes."], ["The model gives final boxes without NMS."]], "note": "论文称 YOLOv8 到 YOLOv13 依赖 NMS，YOLO26 直接输出最终框。"},
+        {"item": {"en": "Box regression", "zh": "框回归"}, "cells": [["The model uses DFL to predict the box edges."], ["The model predicts the box in a simpler way, without DFL."]], "note": "论文称 YOLOv8、YOLO11、YOLOv12 和 YOLOv13 使用 DFL。"},
+        {"item": {"en": "Hand-tuned settings", "zh": "手工调节的参数"}, "cells": [["The IoU threshold of NMS needs tuning."], ["There is no NMS threshold to tune."]], "note": "去掉 NMS 后，也就没有需要调节的 IoU 阈值。"},
+        {"item": {"en": "Export", "zh": "导出"}, "cells": [["DFL and NMS need special handling."], ["The graph is simpler, so export is easier."]], "note": "这是论文的说法，论文没有给出导出难度的对比实验。"},
+        {"item": {"en": "Small objects", "zh": "小目标"}, "cells": [["Earlier models often need extra augmentations or tricks."], ["ProgLoss and STAL give priority to small objects."]], "note": "论文称早期模型常需要额外的数据增强或训练技巧。"},
+        {"item": {"en": "Optimizer", "zh": "优化器"}, "cells": [["The usual choices are SGD or AdamW variants."], ["MuSGD combines SGD and Muon."]], "note": "论文称早期模型使用标准 SGD 或 AdamW 的变体。"}
+      ]
+    }
+  ],
+
+  "footer_notes": [
+    {
+      "en": "This page reads arXiv version 5 of the paper. Check the version before you quote a number, because the numbers can change between versions.",
+      "zh": "本页解读的是论文 arXiv 第 5 版。引用数字之前请先确认版本，因为不同版本的数字可能不同。"
+    }
+  ]
+}
